@@ -49,7 +49,7 @@ const default_locations = [
     title: "The afterlife (Solo bar)", info: ""}
 ];
 
-const locations = [...default_locations];
+const locations = [];
 
 function addLocation(location) {
   const requiredKeys = ["x", "y", "title", "info", "reference", "type"];
@@ -79,6 +79,8 @@ function addLocation(location) {
   locations.push(normalized);
   return normalized;
 }
+
+default_locations.forEach((location) => addLocation(location));
 
 window.Locations = {
   LOCATION_TYPES,
