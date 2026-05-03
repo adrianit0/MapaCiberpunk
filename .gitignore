@@ -1,0 +1,5 @@
+# Ignorar configuración de JetBrains (.idea)
+.idea/
+
+# Opcional: ignorar archivos de proyecto individuales
+*.iml
