@@ -3,6 +3,9 @@ const pois = document.querySelectorAll(".poi");
 const info = document.getElementById("info");
 const mapContainer = document.getElementById("mapContainer");
 const mapContent = document.getElementById("mapContent");
+const debugInfo = document.getElementById("debugInfo");
+
+const DEBUG = true;
 
 const MAP_WIDTH = 4614;
 const MAP_HEIGHT = 4606;
@@ -23,6 +26,33 @@ let pinchStartScale = scale;
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function updateDebugVisibility() {
+  debugInfo.classList.toggle("hidden", !DEBUG);
+}
+
+function updateDebugCoordinates(clientX, clientY) {
+  if (!DEBUG) return;
+
+  const rect = mapContainer.getBoundingClientRect();
+  const localX = clientX - rect.left;
+  const localY = clientY - rect.top;
+  const mapX = (localX - translateX) / scale;
+  const mapY = (localY - translateY) / scale;
+
+  const isInsideMap = mapX >= 0 && mapX <= MAP_WIDTH && mapY >= 0 && mapY <= MAP_HEIGHT;
+
+  if (!isInsideMap) {
+    debugInfo.innerHTML = "<strong>Ratón fuera del mapa</strong>";
+    return;
+  }
+
+  debugInfo.innerHTML = `
+    <strong>Debug</strong><br>
+    X: ${mapX.toFixed(2)}<br>
+    Y: ${mapY.toFixed(2)}
+  `;
 }
 
 function clampTranslation() {
@@ -91,6 +121,8 @@ mapContainer.addEventListener("mousedown", (event) => {
 });
 
 window.addEventListener("mousemove", (event) => {
+  updateDebugCoordinates(event.clientX, event.clientY);
+
   if (!isDragging) return;
   translateX += event.clientX - lastX;
   translateY += event.clientY - lastY;
@@ -195,4 +227,5 @@ pois.forEach((poi) => {
 
 mapContent.style.width = `${MAP_WIDTH}px`;
 mapContent.style.height = `${MAP_HEIGHT}px`;
+updateDebugVisibility();
 fitMapToView();
