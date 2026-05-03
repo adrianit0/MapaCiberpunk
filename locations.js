@@ -22,8 +22,8 @@ const TYPE_COLORS = Object.freeze({
 
 const default_locations = [
   {
-    x: 300,
-    y: 160,
+    x: 3000,
+    y: 1600,
     title: "POI 1 · Torre de vigilancia",
     info: "<p>Torre de vigilancia con acceso restringido y sensores de largo alcance.</p>",
     reference: "1",
@@ -44,7 +44,9 @@ const default_locations = [
     info: "<p>Nodo de distribución eléctrica de alta capacidad para el sector sur.</p>",
     reference: "3",
     type: LOCATION_TYPES.PUBLIC_SERVICES
-  }
+  },
+  { x: 2135, y: 2800, reference: "1", type: LOCATION_TYPES.HOTELS_BARS_AND_RESTAURANTS,
+    title: "The afterlife (Solo bar)", info: ""}
 ];
 
 const locations = [...default_locations];
