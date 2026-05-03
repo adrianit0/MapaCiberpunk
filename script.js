@@ -1,4 +1,3 @@
-const regions = document.querySelectorAll(".region");
 const info = document.getElementById("info");
 const mapContainer = document.getElementById("mapContainer");
 const mapContent = document.getElementById("mapContent");
@@ -226,7 +225,7 @@ window.addEventListener("resize", () => {
 });
 
 function clearActiveFeatures() {
-  regions.forEach((region) => region.classList.remove("active"));
+  document.querySelectorAll(".region").forEach((region) => region.classList.remove("active"));
   document.querySelectorAll(".poi").forEach((poi) => poi.classList.remove("active"));
 }
 
@@ -256,11 +255,23 @@ info.addEventListener("click", (event) => {
   closeInfo();
 });
 
-regions.forEach((region) => {
-  region.addEventListener("click", () => {
-    showFeatureInfo(region);
+function renderRegions(regionList = []) {
+  document.querySelectorAll(".region").forEach((region) => region.remove());
+
+  regionList.forEach((regionData) => {
+    const region = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    region.setAttribute("class", "region");
+    region.setAttribute("points", regionData.points);
+    region.dataset.title = regionData.title;
+    region.dataset.info = regionData.info;
+
+    region.addEventListener("click", () => {
+      showFeatureInfo(region);
+    });
+
+    overlay.appendChild(region);
   });
-});
+}
 
 function renderLocations(points = []) {
   document.querySelectorAll(".poi").forEach((poi) => poi.remove());
@@ -293,6 +304,7 @@ function renderLocations(points = []) {
 
 mapContent.style.width = `${MAP_WIDTH}px`;
 mapContent.style.height = `${MAP_HEIGHT}px`;
+renderRegions(window.Regions?.regions ?? []);
 renderLocations(window.Locations?.locations ?? []);
 updateDebugVisibility();
 fitMapToView();
