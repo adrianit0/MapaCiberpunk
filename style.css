@@ -126,13 +126,48 @@ h1 {
   width: min(480px, 42vw);
   min-height: calc(25% - 24px);
   max-height: calc(100% - 24px);
-  overflow: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   padding: 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 10px;
   background: rgba(13, 17, 23, 0.86);
   backdrop-filter: blur(4px);
   z-index: 3;
+}
+
+.info-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.info h2 {
+  margin: 0;
+}
+
+.info-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.info-content p {
+  margin: 0;
+}
+
+.info-close {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  font-size: 1.2rem;
+  line-height: 1;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
 }
 
 .debug-info {
