@@ -8,40 +8,43 @@
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-<main>
+<main class="app">
     <h1>Mapa interactivo</h1>
 
-    <div class="map-container">
-        <img src="mapa.jpg" alt="Mapa interactivo" />
+    <div class="map-stage">
+        <div class="map-container" id="mapContainer" aria-label="Mapa navegable" role="application">
+            <div class="map-content" id="mapContent">
+                <img src="mapa.jpg" alt="Mapa interactivo" draggable="false" />
 
-        <svg class="overlay" viewBox="0 0 1000 700">
-            <polygon
-                    class="region"
-                    points="120,90 300,80 340,220 150,260"
-                    data-title="Región Norte"
-                    data-info="Aquí puedes mostrar población, clima, enlaces u otra información relevante."
-            />
+                <svg class="overlay" viewBox="0 0 1000 700" preserveAspectRatio="none">
+                    <polygon
+                            class="region"
+                            points="120,90 300,80 340,220 150,260"
+                            data-title="Región Norte"
+                            data-info="Aquí puedes mostrar población, clima, enlaces u otra información relevante."
+                    />
 
-            <polygon
-                    class="region"
-                    points="420,180 620,150 700,330 500,380"
-                    data-title="Región Central"
-                    data-info="Información detallada de la región central del mapa."
-            />
+                    <polygon
+                            class="region"
+                            points="420,180 620,150 700,330 500,380"
+                            data-title="Región Central"
+                            data-info="Información detallada de la región central del mapa."
+                    />
 
-            <polygon
-                    class="region"
-                    points="200,360 390,330 430,520 240,560"
-                    data-title="Región Sur"
-                    data-info="Datos específicos de la región sur."
-            />
-        </svg>
+                    <polygon
+                            class="region"
+                            points="200,360 390,330 430,520 240,560"
+                            data-title="Región Sur"
+                            data-info="Datos específicos de la región sur."
+                    />
+                </svg>
+            </div>
+        </div>
+
+        <section id="info" class="info" aria-live="polite">
+            Selecciona una región del mapa.
+        </section>
     </div>
-
-    <section id="info" class="info">
-        Selecciona una región del mapa.
-    </section>
 </main>
 
 <script src="script.js"></script>
