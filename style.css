@@ -59,9 +59,8 @@ h1 {
 .map-container img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
+  object-fit: fill;
+  image-rendering: auto;
   display: block;
   pointer-events: none;
   user-select: none;

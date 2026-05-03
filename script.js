@@ -4,13 +4,16 @@ const info = document.getElementById("info");
 const mapContainer = document.getElementById("mapContainer");
 const mapContent = document.getElementById("mapContent");
 
+const MAP_WIDTH = 4614;
+const MAP_HEIGHT = 4606;
+
 let scale = 1;
-let translateX = 0;
-let translateY = 0;
-const minScale = 1;
+let minScale = 1;
 const maxScale = 12;
 const zoomInFactor = 1.23;
 const zoomOutFactor = 0.9;
+let translateX = 0;
+let translateY = 0;
 let isDragging = false;
 let lastX = 0;
 let lastY = 0;
@@ -25,19 +28,37 @@ function clamp(value, min, max) {
 function clampTranslation() {
   const containerWidth = mapContainer.clientWidth;
   const containerHeight = mapContainer.clientHeight;
-  const scaledWidth = containerWidth * scale;
-  const scaledHeight = containerHeight * scale;
+  const scaledWidth = MAP_WIDTH * scale;
+  const scaledHeight = MAP_HEIGHT * scale;
 
   const minTranslateX = Math.min(0, containerWidth - scaledWidth);
   const minTranslateY = Math.min(0, containerHeight - scaledHeight);
+  const maxTranslateX = scaledWidth <= containerWidth ? (containerWidth - scaledWidth) / 2 : 0;
+  const maxTranslateY = scaledHeight <= containerHeight ? (containerHeight - scaledHeight) / 2 : 0;
 
-  translateX = clamp(translateX, minTranslateX, 0);
-  translateY = clamp(translateY, minTranslateY, 0);
+  translateX = clamp(translateX, minTranslateX, maxTranslateX);
+  translateY = clamp(translateY, minTranslateY, maxTranslateY);
 }
 
 function applyTransform() {
   clampTranslation();
   mapContent.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+}
+
+function calculateFitScale() {
+  const containerWidth = mapContainer.clientWidth;
+  const containerHeight = mapContainer.clientHeight;
+  return Math.min(containerWidth / MAP_WIDTH, containerHeight / MAP_HEIGHT);
+}
+
+function fitMapToView() {
+  minScale = calculateFitScale();
+  scale = minScale;
+  const scaledWidth = MAP_WIDTH * scale;
+  const scaledHeight = MAP_HEIGHT * scale;
+  translateX = (mapContainer.clientWidth - scaledWidth) / 2;
+  translateY = (mapContainer.clientHeight - scaledHeight) / 2;
+  applyTransform();
 }
 
 function zoomAt(clientX, clientY, deltaScale) {
@@ -133,7 +154,17 @@ mapContainer.addEventListener("touchend", (event) => {
   }
 });
 
-window.addEventListener("resize", applyTransform);
+window.addEventListener("resize", () => {
+  const prevMinScale = minScale;
+  minScale = calculateFitScale();
+
+  if (scale < minScale || Math.abs(scale - prevMinScale) < 0.0001) {
+    fitMapToView();
+    return;
+  }
+
+  applyTransform();
+});
 
 function clearActiveFeatures() {
   regions.forEach((region) => region.classList.remove("active"));
@@ -162,4 +193,6 @@ pois.forEach((poi) => {
   });
 });
 
-applyTransform();
+mapContent.style.width = `${MAP_WIDTH}px`;
+mapContent.style.height = `${MAP_HEIGHT}px`;
+fitMapToView();
