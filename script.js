@@ -1,8 +1,8 @@
 const regions = document.querySelectorAll(".region");
-const pois = document.querySelectorAll(".poi");
 const info = document.getElementById("info");
 const mapContainer = document.getElementById("mapContainer");
 const mapContent = document.getElementById("mapContent");
+const overlay = document.querySelector(".overlay");
 const debugInfo = document.getElementById("debugInfo");
 
 const DEBUG = true;
@@ -200,7 +200,7 @@ window.addEventListener("resize", () => {
 
 function clearActiveFeatures() {
   regions.forEach((region) => region.classList.remove("active"));
-  pois.forEach((poi) => poi.classList.remove("active"));
+  document.querySelectorAll(".poi").forEach((poi) => poi.classList.remove("active"));
 }
 
 function showFeatureInfo(feature) {
@@ -219,13 +219,37 @@ regions.forEach((region) => {
   });
 });
 
-pois.forEach((poi) => {
-  poi.addEventListener("click", () => {
-    showFeatureInfo(poi);
+function renderLocations(points = []) {
+  document.querySelectorAll(".poi").forEach((poi) => poi.remove());
+
+  points.forEach((location) => {
+    const marker = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    marker.setAttribute("class", "poi");
+    marker.setAttribute("transform", `translate(${location.x} ${location.y})`);
+    marker.dataset.title = location.title;
+    marker.dataset.info = location.info.replace(/<[^>]*>/g, "");
+
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("r", "18");
+    circle.setAttribute("fill", location.color || "#6f42c1");
+
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    label.setAttribute("class", "poi-label poi-label-dark");
+    label.setAttribute("text-anchor", "middle");
+    label.setAttribute("dominant-baseline", "middle");
+    label.textContent = location.reference;
+
+    marker.append(circle, label);
+    marker.addEventListener("click", () => {
+      showFeatureInfo(marker);
+    });
+
+    overlay.appendChild(marker);
   });
-});
+}
 
 mapContent.style.width = `${MAP_WIDTH}px`;
 mapContent.style.height = `${MAP_HEIGHT}px`;
+renderLocations(window.Locations?.locations ?? []);
 updateDebugVisibility();
 fitMapToView();
