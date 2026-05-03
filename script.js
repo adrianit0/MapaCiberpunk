@@ -20,6 +20,10 @@ let translateY = 0;
 let isDragging = false;
 let lastX = 0;
 let lastY = 0;
+let dragStartX = 0;
+let dragStartY = 0;
+let hasDragged = false;
+let suppressNextClick = false;
 
 let pinchStartDistance = null;
 let pinchStartScale = scale;
@@ -115,15 +119,24 @@ mapContainer.addEventListener("wheel", (event) => {
 mapContainer.addEventListener("mousedown", (event) => {
   if (event.button !== 0) return;
   isDragging = true;
+  hasDragged = false;
   mapContainer.classList.add("dragging");
   lastX = event.clientX;
   lastY = event.clientY;
+  dragStartX = event.clientX;
+  dragStartY = event.clientY;
 });
 
 window.addEventListener("mousemove", (event) => {
   updateDebugCoordinates(event.clientX, event.clientY);
 
   if (!isDragging) return;
+  if (!hasDragged) {
+    const dragDistance = Math.hypot(event.clientX - dragStartX, event.clientY - dragStartY);
+    if (dragDistance > 3) {
+      hasDragged = true;
+    }
+  }
   translateX += event.clientX - lastX;
   translateY += event.clientY - lastY;
   lastX = event.clientX;
@@ -132,8 +145,22 @@ window.addEventListener("mousemove", (event) => {
 });
 
 window.addEventListener("mouseup", () => {
+  suppressNextClick = hasDragged;
+  hasDragged = false;
   isDragging = false;
   mapContainer.classList.remove("dragging");
+});
+
+mapContainer.addEventListener("click", (event) => {
+  if (suppressNextClick) {
+    suppressNextClick = false;
+    return;
+  }
+
+  const clickedFeature = event.target.closest(".region, .poi");
+  if (!clickedFeature) {
+    closeInfo();
+  }
 });
 
 mapContainer.addEventListener("touchstart", (event) => {
@@ -208,10 +235,26 @@ function showFeatureInfo(feature) {
   feature.classList.add("active");
 
   info.innerHTML = `
-      <h2>${feature.dataset.title}</h2>
-      <p>${feature.dataset.info}</p>
+      <div class="info-header">
+        <h2>${feature.dataset.title}</h2>
+        <button type="button" class="info-close" aria-label="Cerrar información">×</button>
+      </div>
+      <div class="info-content">
+        <p>${feature.dataset.info}</p>
+      </div>
     `;
 }
+
+function closeInfo() {
+  clearActiveFeatures();
+  info.innerHTML = "Selecciona una región del mapa.";
+}
+
+info.addEventListener("click", (event) => {
+  const closeButton = event.target.closest(".info-close");
+  if (!closeButton) return;
+  closeInfo();
+});
 
 regions.forEach((region) => {
   region.addEventListener("click", () => {
