@@ -30,7 +30,7 @@ h1 {
 .map-stage {
   position: relative;
   width: 100%;
-  height: calc(100vh - 70px);
+  height: 100%;
 }
 
 .map-container {
@@ -50,7 +50,7 @@ h1 {
 }
 
 .map-content {
-  position: absolute;
+  position: relative;
   inset: 0;
   transform-origin: center center;
   will-change: transform;
