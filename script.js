@@ -8,7 +8,9 @@ let scale = 1;
 let translateX = 0;
 let translateY = 0;
 const minScale = 1;
-const maxScale = 4;
+const maxScale = 8;
+const zoomInFactor = 1.14;
+const zoomOutFactor = 0.9;
 let isDragging = false;
 let lastX = 0;
 let lastY = 0;
@@ -20,7 +22,21 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
+function clampTranslation() {
+  const containerWidth = mapContainer.clientWidth;
+  const containerHeight = mapContainer.clientHeight;
+  const scaledWidth = containerWidth * scale;
+  const scaledHeight = containerHeight * scale;
+
+  const minTranslateX = Math.min(0, containerWidth - scaledWidth);
+  const minTranslateY = Math.min(0, containerHeight - scaledHeight);
+
+  translateX = clamp(translateX, minTranslateX, 0);
+  translateY = clamp(translateY, minTranslateY, 0);
+}
+
 function applyTransform() {
+  clampTranslation();
   mapContent.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
 }
 
@@ -41,7 +57,7 @@ function zoomAt(clientX, clientY, deltaScale) {
 
 mapContainer.addEventListener("wheel", (event) => {
   event.preventDefault();
-  const deltaScale = event.deltaY > 0 ? 0.92 : 1.08;
+  const deltaScale = event.deltaY > 0 ? zoomOutFactor : zoomInFactor;
   zoomAt(event.clientX, event.clientY, deltaScale);
 }, { passive: false });
 
@@ -116,6 +132,8 @@ mapContainer.addEventListener("touchend", (event) => {
     isDragging = false;
   }
 });
+
+window.addEventListener("resize", applyTransform);
 
 function clearActiveFeatures() {
   regions.forEach((region) => region.classList.remove("active"));
