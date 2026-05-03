@@ -42,7 +42,7 @@ h1 {
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: #000;
   touch-action: none;
-  cursor: grab;
+  // cursor: grab;
 }
 
 .map-container.dragging {
@@ -101,12 +101,12 @@ h1 {
 
 .poi:hover circle,
 .poi.active circle {
-  transform: scale(1.1);
+  transform: scale(1.4);
 }
 
 .poi-label {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 100;
   user-select: none;
   pointer-events: none;
 }
@@ -123,7 +123,8 @@ h1 {
   position: absolute;
   top: 12px;
   right: 12px;
-  width: min(360px, 42vw);
+  width: min(480px, 42vw);
+  min-height: calc(25% - 24px);
   max-height: calc(100% - 24px);
   overflow: auto;
   padding: 16px;

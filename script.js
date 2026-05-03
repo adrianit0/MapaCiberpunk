@@ -49,7 +49,7 @@ function updateDebugCoordinates(clientX, clientY) {
   }
 
   debugInfo.innerHTML = `
-    <strong>Debug</strong><br>
+    <strong>Localización:</strong><br>
     X: ${mapX.toFixed(2)}<br>
     Y: ${mapY.toFixed(2)}
   `;
@@ -234,7 +234,7 @@ function renderLocations(points = []) {
     circle.setAttribute("fill", location.color || "#6f42c1");
 
     const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    label.setAttribute("class", "poi-label poi-label-dark");
+    label.setAttribute("class", "poi-label poi-label-light");
     label.setAttribute("text-anchor", "middle");
     label.setAttribute("dominant-baseline", "middle");
     label.textContent = location.reference;

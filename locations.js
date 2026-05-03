@@ -4,7 +4,7 @@ const LOCATION_TYPES = Object.freeze({
   PERFORMING_ARTS_AND_SPORT: "Perfoming Arts and Sport",
   PUBLIC_SERVICES: "Public Services",
   OTHER: "Other",
-  CORPORATIONS: "Corportations",
+  CORPORTATIONS: "Corportations",
   HOTELS_BARS_AND_RESTAURANTS: "Hotels bars & Restaurants",
   GANG_TERRITORIES: "Gang territories"
 });
@@ -15,38 +15,34 @@ const TYPE_COLORS = Object.freeze({
   [LOCATION_TYPES.PERFORMING_ARTS_AND_SPORT]: "#8a2be2", // Morado
   [LOCATION_TYPES.PUBLIC_SERVICES]: "#8b4513", // Marrón
   [LOCATION_TYPES.OTHER]: "#ff0000", // Rojo
-  [LOCATION_TYPES.CORPORATIONS]: "#008000", // Verde
+  [LOCATION_TYPES.CORPORTATIONS]: "#56bb2f", // Verde
   [LOCATION_TYPES.HOTELS_BARS_AND_RESTAURANTS]: "#00bfff", // Celeste
   [LOCATION_TYPES.GANG_TERRITORIES]: "#ffd700" // Amarillo
 });
 
 const default_locations = [
-  {
-    x: 3000,
-    y: 1600,
-    title: "POI 1 · Torre de vigilancia",
-    info: "<p>Torre de vigilancia con acceso restringido y sensores de largo alcance.</p>",
-    reference: "1",
-    type: LOCATION_TYPES.PERFORMING_ARTS_AND_SPORT
-  },
-  {
-    x: 570,
-    y: 250,
-    title: "POI 2 · Mercado negro",
-    info: "<p>Zona de comercio clandestino de implantes y piezas electrónicas.</p>",
-    reference: "2",
-    type: LOCATION_TYPES.GANG_TERRITORIES
-  },
-  {
-    x: 340,
-    y: 450,
-    title: "POI 3 · Estación energética",
-    info: "<p>Nodo de distribución eléctrica de alta capacidad para el sector sur.</p>",
-    reference: "3",
-    type: LOCATION_TYPES.PUBLIC_SERVICES
-  },
-  { x: 2135, y: 2800, reference: "1", type: LOCATION_TYPES.HOTELS_BARS_AND_RESTAURANTS,
-    title: "The afterlife (Solo bar)", info: ""}
+    // Corporaciones
+  { x: 2125, y: 2785, reference: "1", type: LOCATION_TYPES.CORPORTATIONS, title: "Merrill, Asukaga & Finch", info: ""},
+  { x: 1950, y: 2500, reference: "2", type: LOCATION_TYPES.CORPORTATIONS, title: "Raven Microcybernetics", info: ""},
+  { x: 1595, y: 2255, reference: "3", type: LOCATION_TYPES.CORPORTATIONS, title: "Biotechnica Campus", info: ""},
+  { x: 1285, y: 1840, reference: "4", type: LOCATION_TYPES.CORPORTATIONS, title: "Continental Brands", info: ""},
+  { x: 1070, y: 1705, reference: "5", type: LOCATION_TYPES.CORPORTATIONS, title: "Danger Girl", info: ""},
+  { x: 3255, y: 1895, reference: "6", type: LOCATION_TYPES.CORPORTATIONS, title: "Reo Meatwagon", info: ""},
+  { x: 2968, y: 1649, reference: "7", type: LOCATION_TYPES.CORPORTATIONS, title: "Ziggurat", info: ""},
+  { x: 2450, y: 180, reference: "8", type: LOCATION_TYPES.CORPORTATIONS, title: "Petrochem", info: ""},
+  { x: 2288, y: 130, reference: "9", type: LOCATION_TYPES.CORPORTATIONS, title: "Sovoil", info: ""},
+  { x: 1880, y: 325, reference: "10", type: LOCATION_TYPES.CORPORTATIONS, title: "Trauma Team Tower", info: ""},
+  { x: 1845, y: 130, reference: "11", type: LOCATION_TYPES.CORPORTATIONS, title: "Militech", info: ""},
+  { x: 3311, y: 3075, reference: "12", type: LOCATION_TYPES.CORPORTATIONS, title: "Zhirafa Office Park", info: ""},
+  { x: 3205, y: 648, reference: "13", type: LOCATION_TYPES.CORPORTATIONS, title: "Network 54", info: ""},
+  { x: 3530, y: 1942, reference: "14", type: LOCATION_TYPES.CORPORTATIONS, title: "Rocklin Augmentics Campus", info: ""},
+  { x: 3090, y: 338, reference: "15", type: LOCATION_TYPES.CORPORTATIONS, title: "Worldsat", info: ""},
+
+    // Otros
+  { x: 1492, y: 1627, reference: "1", type: LOCATION_TYPES.OTHER, title: "Camdem Court (Solo complex)", info: ""},
+  { x: 1500, y: 1680, reference: "2", type: LOCATION_TYPES.OTHER, title: "Holy Angels Church", info: ""},
+  { x: 533, y: 1416, reference: "3", type: LOCATION_TYPES.OTHER, title: "Orbital Air Massdriver", info: ""},
+
 ];
 
 const locations = [];
