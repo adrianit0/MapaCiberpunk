@@ -1,4 +1,5 @@
 const regions = document.querySelectorAll(".region");
+const pois = document.querySelectorAll(".poi");
 const info = document.getElementById("info");
 const mapContainer = document.getElementById("mapContainer");
 const mapContent = document.getElementById("mapContent");
@@ -116,15 +117,30 @@ mapContainer.addEventListener("touchend", (event) => {
   }
 });
 
+function clearActiveFeatures() {
+  regions.forEach((region) => region.classList.remove("active"));
+  pois.forEach((poi) => poi.classList.remove("active"));
+}
+
+function showFeatureInfo(feature) {
+  clearActiveFeatures();
+  feature.classList.add("active");
+
+  info.innerHTML = `
+      <h2>${feature.dataset.title}</h2>
+      <p>${feature.dataset.info}</p>
+    `;
+}
+
 regions.forEach((region) => {
   region.addEventListener("click", () => {
-    regions.forEach((r) => r.classList.remove("active"));
-    region.classList.add("active");
+    showFeatureInfo(region);
+  });
+});
 
-    info.innerHTML = `
-      <h2>${region.dataset.title}</h2>
-      <p>${region.dataset.info}</p>
-    `;
+pois.forEach((poi) => {
+  poi.addEventListener("click", () => {
+    showFeatureInfo(poi);
   });
 });
 

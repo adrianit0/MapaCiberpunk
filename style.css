@@ -86,6 +86,38 @@ h1 {
   stroke: #ff9900;
 }
 
+.poi {
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.2s ease;
+}
+
+.poi:hover,
+.poi.active {
+  transform: scale(1.05);
+}
+
+.poi circle {
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.poi-label {
+  font-size: 14px;
+  font-weight: 700;
+  user-select: none;
+  pointer-events: none;
+}
+
+.poi-label-light {
+  fill: #fff;
+}
+
+.poi-label-dark {
+  fill: #111;
+}
+
 .info {
   position: absolute;
   top: 12px;
