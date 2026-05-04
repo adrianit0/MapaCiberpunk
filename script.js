@@ -4,7 +4,7 @@ const mapContent = document.getElementById("mapContent");
 const overlay = document.querySelector(".overlay");
 const debugInfo = document.getElementById("debugInfo");
 
-const DEBUG = true;
+const DEBUG = false;
 
 const MAP_WIDTH = 4614;
 const MAP_HEIGHT = 4606;
@@ -178,6 +178,13 @@ mapContainer.addEventListener("click", (event) => {
   const clickedFeature = event.target.closest(".region, .poi");
   if (!clickedFeature) {
     closeInfo();
+  }
+});
+
+mapContainer.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  if (DEBUG) {
+    debugClickedCoordinates = [];
   }
 });
 
