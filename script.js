@@ -24,8 +24,21 @@ let dragStartY = 0;
 let hasDragged = false;
 let suppressNextClick = false;
 
+
 let pinchStartDistance = null;
 let pinchStartScale = scale;
+let debugClickedCoordinates = [];
+
+function getMapCoordinates(clientX, clientY) {
+  const rect = mapContainer.getBoundingClientRect();
+  const localX = clientX - rect.left;
+  const localY = clientY - rect.top;
+
+  return {
+    mapX: (localX - translateX) / scale,
+    mapY: (localY - translateY) / scale
+  };
+}
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -38,11 +51,7 @@ function updateDebugVisibility() {
 function updateDebugCoordinates(clientX, clientY) {
   if (!DEBUG) return;
 
-  const rect = mapContainer.getBoundingClientRect();
-  const localX = clientX - rect.left;
-  const localY = clientY - rect.top;
-  const mapX = (localX - translateX) / scale;
-  const mapY = (localY - translateY) / scale;
+  const { mapX, mapY } = getMapCoordinates(clientX, clientY);
 
   const isInsideMap = mapX >= 0 && mapX <= MAP_WIDTH && mapY >= 0 && mapY <= MAP_HEIGHT;
 
@@ -151,6 +160,16 @@ window.addEventListener("mouseup", () => {
 });
 
 mapContainer.addEventListener("click", (event) => {
+  if (DEBUG) {
+    const { mapX, mapY } = getMapCoordinates(event.clientX, event.clientY);
+    const isInsideMap = mapX >= 0 && mapX <= MAP_WIDTH && mapY >= 0 && mapY <= MAP_HEIGHT;
+
+    if (isInsideMap) {
+      debugClickedCoordinates.push(`${mapX.toFixed(2)},${mapY.toFixed(2)}`);
+      console.log(debugClickedCoordinates.join(" "));
+    }
+  }
+
   if (suppressNextClick) {
     suppressNextClick = false;
     return;
