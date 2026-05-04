@@ -3,6 +3,9 @@ const mapContainer = document.getElementById("mapContainer");
 const mapContent = document.getElementById("mapContent");
 const overlay = document.querySelector(".overlay");
 const debugInfo = document.getElementById("debugInfo");
+const menuToggle = document.getElementById("menuToggle");
+const sideMenu = document.getElementById("sideMenu");
+const menuContent = document.getElementById("menuContent");
 
 const DEBUG = false;
 
@@ -28,6 +31,18 @@ let suppressNextClick = false;
 let pinchStartDistance = null;
 let pinchStartScale = scale;
 let debugClickedCoordinates = [];
+let isMenuOpen = false;
+
+function setMenuOpen(open) {
+  isMenuOpen = open;
+  sideMenu.classList.toggle("open", open);
+  sideMenu.setAttribute("aria-hidden", String(!open));
+  menuToggle.setAttribute("aria-expanded", String(open));
+}
+
+menuToggle.addEventListener("click", () => {
+  setMenuOpen(!isMenuOpen);
+});
 
 function getMapCoordinates(clientX, clientY) {
   const rect = mapContainer.getBoundingClientRect();
@@ -270,6 +285,14 @@ function showFeatureInfo(feature) {
     `;
 }
 
+function centerMapOn(mapX, mapY) {
+  const containerWidth = mapContainer.clientWidth;
+  const containerHeight = mapContainer.clientHeight;
+  translateX = (containerWidth / 2) - (mapX * scale);
+  translateY = (containerHeight / 2) - (mapY * scale);
+  applyTransform();
+}
+
 function closeInfo() {
   clearActiveFeatures();
   info.innerHTML = "Selecciona una región del mapa.";
@@ -308,6 +331,10 @@ function renderLocations(points = []) {
     marker.setAttribute("transform", `translate(${location.x} ${location.y})`);
     marker.dataset.title = location.title;
     marker.dataset.info = location.info.replace(/<[^>]*>/g, "");
+    marker.dataset.reference = location.reference;
+    marker.dataset.type = location.type;
+    marker.dataset.x = String(location.x);
+    marker.dataset.y = String(location.y);
 
     const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     circle.setAttribute("r", "18");
@@ -328,9 +355,61 @@ function renderLocations(points = []) {
   });
 }
 
+function renderLocationsMenu(points = []) {
+  menuContent.innerHTML = "";
+
+  const grouped = points.reduce((acc, location) => {
+    if (!acc[location.type]) {
+      acc[location.type] = [];
+    }
+    acc[location.type].push(location);
+    return acc;
+  }, {});
+
+  Object.values(window.Locations?.LOCATION_TYPES ?? {}).forEach((type) => {
+    const items = grouped[type] ?? [];
+    if (items.length === 0) return;
+
+    items.sort((a, b) => Number(a.reference) - Number(b.reference));
+
+    const group = document.createElement("section");
+    group.className = "menu-group";
+    const title = document.createElement("h3");
+    title.textContent = type;
+    const list = document.createElement("div");
+    list.className = "menu-list";
+
+    items.forEach((location) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "menu-item";
+      button.innerHTML = `
+        <span class="menu-item-label">
+          <span class="menu-color-dot" style="background:${location.color}">${location.reference}</span>
+          <span>${location.title}</span>
+        </span>
+      `;
+
+      button.addEventListener("click", () => {
+        const selector = `.poi[data-type="${CSS.escape(location.type)}"][data-reference="${CSS.escape(location.reference)}"]`;
+        const marker = document.querySelector(selector);
+        if (!marker) return;
+        showFeatureInfo(marker);
+        centerMapOn(location.x, location.y);
+      });
+
+      list.appendChild(button);
+    });
+
+    group.append(title, list);
+    menuContent.appendChild(group);
+  });
+}
+
 mapContent.style.width = `${MAP_WIDTH}px`;
 mapContent.style.height = `${MAP_HEIGHT}px`;
 renderRegions(window.Regions?.regions ?? []);
 renderLocations(window.Locations?.locations ?? []);
+renderLocationsMenu(window.Locations?.locations ?? []);
 updateDebugVisibility();
 fitMapToView();
