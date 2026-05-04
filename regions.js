@@ -1,19 +1,35 @@
 const default_regions = [
-  {
-    points: "120,90 300,80 340,220 150,260",
-    title: "Región Norte",
-    info: "Aquí puedes mostrar población, clima, enlaces u otra información relevante."
-  },
-  {
-    points: "420,180 620,150 700,330 500,380",
-    title: "Región Central",
-    info: "Información detallada de la región central del mapa."
-  },
-  {
-    points: "200,360 390,330 430,520 240,560",
-    title: "Región Sur",
-    info: "Datos específicos de la región sur."
-  }
+    {
+        points: "120,90 300,80 340,220 150,260",
+        title: "Región Norte",
+        info: "Aquí puedes mostrar población, clima, enlaces u otra información relevante."
+    },
+    {
+        points: "420,180 620,150 700,330 500,380",
+        title: "Región Central",
+        info: "Información detallada de la región central del mapa."
+    },
+    {
+        points: "200,360 390,330 430,520 240,560",
+        title: "Región Sur",
+        info: "Datos específicos de la región sur."
+    },
+    {
+        points: "",
+        title: "Norcal Military Base",
+        info: ""
+    },
+    {
+      points: "",
+      title: "Watson Development",
+      info: ""
+    },
+    {
+        points: "",
+        title: "New Westbrook",
+        info: ""
+    }
+
 ];
 
 const regions = [];
