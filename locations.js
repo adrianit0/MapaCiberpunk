@@ -79,7 +79,7 @@ const default_locations = [
   { x: 2118, y: 4078, reference: "10", type: LOCATION_TYPES.OTHER, title: "RC Night Market (Night Market in an Old Mall)", info: "" },
   { x: 1550, y: 2055, reference: "11", type: LOCATION_TYPES.OTHER, title: "Torrell and Chiang's (Bespoke Tailors)", info: "" },
   { x: 905, y: 2454, reference: "12", type: LOCATION_TYPES.OTHER, title: "Stems & Seeds (Guerrilla Gardening Collective)", info: "" },
-  { x: 3060, y: 1570, reference: "13", type: LOCATION_TYPES.OTHER, title: "Upper Marina Docks (Nomad Cargo Transfer)", info: "" },
+  { x: 3060, y: 1530, reference: "13", type: LOCATION_TYPES.OTHER, title: "Upper Marina Docks (Nomad Cargo Transfer)", info: "" },
   { x: 4055, y: 4037, reference: "14", type: LOCATION_TYPES.OTHER, title: "Woodchipper's Garage (Nomad Weapons Fixer)", info: "" },
   { x: 3450, y: 2978, reference: "15", type: LOCATION_TYPES.OTHER, title: "Hornet's Pharmacy (Illicit Drugs)", info: "" },
   { x: 2260, y: 2623, reference: "16", type: LOCATION_TYPES.OTHER, title: "Verdant Arms Apartments", info: "" },
