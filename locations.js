@@ -145,6 +145,7 @@ const default_locations = [
 ];
 
 const locations = [];
+let nextLocationId = 1;
 
 function addLocation(location) {
   const requiredKeys = ["x", "y", "title", "info", "reference", "type"];
@@ -168,6 +169,8 @@ function addLocation(location) {
 
   const normalized = {
     ...location,
+    id: location.id ?? String(nextLocationId++),
+    editable: location.editable ?? true,
     color: TYPE_COLORS[location.type]
   };
 
@@ -175,12 +178,57 @@ function addLocation(location) {
   return normalized;
 }
 
-default_locations.forEach((location) => addLocation(location));
+function updateLocation(id, updates) {
+  const location = locations.find((item) => item.id === id);
+
+  if (!location) {
+    throw new Error("La localización no existe.");
+  }
+
+  if (!location.editable) {
+    throw new Error("Esta localización no se puede editar.");
+  }
+
+  const updated = {
+    ...location,
+    ...updates
+  };
+
+  const requiredKeys = ["x", "y", "title", "info", "reference", "type"];
+  const missingKeys = requiredKeys.filter((key) => !(key in updated));
+
+  if (missingKeys.length > 0) {
+    throw new Error(`Faltan propiedades requeridas: ${missingKeys.join(", ")}`);
+  }
+
+  if (!Number.isInteger(updated.x) || !Number.isInteger(updated.y)) {
+    throw new Error("Las coordenadas x e y deben ser enteros.");
+  }
+
+  if (typeof updated.title !== "string" || typeof updated.info !== "string" || typeof updated.reference !== "string") {
+    throw new Error("title, info y reference deben ser strings.");
+  }
+
+  if (!Object.values(LOCATION_TYPES).includes(updated.type)) {
+    throw new Error("type no es válido.");
+  }
+
+  Object.assign(location, updated, {
+    id,
+    editable: true,
+    color: TYPE_COLORS[updated.type]
+  });
+
+  return location;
+}
+
+default_locations.forEach((location) => addLocation({ ...location, editable: false }));
 
 window.Locations = {
   LOCATION_TYPES,
   TYPE_COLORS,
   default_locations,
   locations,
-  addLocation
+  addLocation,
+  updateLocation
 };

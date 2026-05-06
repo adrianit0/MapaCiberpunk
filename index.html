@@ -13,6 +13,7 @@
 
     <div class="map-stage">
         <button id="menuToggle" class="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="sideMenu">☰</button>
+        <button id="addLocationToggle" class="add-location-toggle" type="button" aria-pressed="false">Añadir localización</button>
 
         <aside id="sideMenu" class="side-menu" aria-hidden="true">
             <div id="menuContent" class="side-menu-content"></div>
@@ -32,6 +33,41 @@
 
         <section id="debugInfo" class="debug-info" aria-live="off"></section>
     </div>
+    <dialog id="addLocationDialog" class="location-dialog">
+        <form id="addLocationForm" method="dialog" class="location-form">
+            <div class="location-form-header">
+                <h2>Nueva localización</h2>
+                <button id="closeLocationDialog" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+            </div>
+
+            <h4 style="color:red">AVISO: Los cambios no se guardaran tras actualizar</h4>
+
+            <label>
+                Tipo de localización
+                <select id="locationType" name="type" required></select>
+            </label>
+
+            <label>
+                Título
+                <input id="locationTitle" name="title" type="text" required />
+            </label>
+
+            <label>
+                Info
+                <textarea id="locationInfo" name="info" rows="4"></textarea>
+            </label>
+
+            <label>
+                Reference
+                <input id="locationReference" name="reference" type="text" required />
+            </label>
+
+            <div class="location-form-actions">
+                <button id="cancelLocationDialog" class="secondary-button" type="button">Cancelar</button>
+                <button class="primary-button" type="submit">Guardar</button>
+            </div>
+        </form>
+    </dialog>
 </main>
 
 <script src="locations.js"></script>

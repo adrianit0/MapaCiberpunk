@@ -6,6 +6,12 @@ const debugInfo = document.getElementById("debugInfo");
 const menuToggle = document.getElementById("menuToggle");
 const sideMenu = document.getElementById("sideMenu");
 const menuContent = document.getElementById("menuContent");
+const addLocationToggle = document.getElementById("addLocationToggle");
+const addLocationDialog = document.getElementById("addLocationDialog");
+const addLocationForm = document.getElementById("addLocationForm");
+const closeLocationDialog = document.getElementById("closeLocationDialog");
+const cancelLocationDialog = document.getElementById("cancelLocationDialog");
+const locationType = document.getElementById("locationType");
 
 const DEBUG = false;
 
@@ -32,6 +38,10 @@ let pinchStartDistance = null;
 let pinchStartScale = scale;
 let debugClickedCoordinates = [];
 let isMenuOpen = false;
+let isAddingLocation = false;
+let pendingLocationCoordinates = null;
+let editingLocationId = null;
+let isSavingLocation = false;
 
 function setMenuOpen(open) {
   isMenuOpen = open;
@@ -42,6 +52,114 @@ function setMenuOpen(open) {
 
 menuToggle.addEventListener("click", () => {
   setMenuOpen(!isMenuOpen);
+});
+
+function setAddingLocation(enabled) {
+  isAddingLocation = enabled;
+  addLocationToggle.classList.toggle("active", enabled);
+  addLocationToggle.setAttribute("aria-pressed", String(enabled));
+  mapContainer.classList.toggle("adding-location", enabled);
+}
+
+function populateLocationTypes() {
+  locationType.innerHTML = "";
+
+  Object.values(window.Locations?.LOCATION_TYPES ?? {}).forEach((type) => {
+    const option = document.createElement("option");
+    option.value = type;
+    option.textContent = type;
+    locationType.appendChild(option);
+  });
+}
+
+function getLocationById(id) {
+  return window.Locations.locations.find((location) => location.id === id);
+}
+
+function cancelLocationDialogState() {
+  pendingLocationCoordinates = null;
+  editingLocationId = null;
+  addLocationForm.reset();
+  if (addLocationDialog.open) {
+    addLocationDialog.close();
+  }
+}
+
+function openAddLocationDialog(mapX, mapY) {
+  pendingLocationCoordinates = {
+    x: Math.round(mapX),
+    y: Math.round(mapY)
+  };
+  editingLocationId = null;
+  addLocationForm.reset();
+  addLocationForm.querySelector("h2").textContent = "Nueva localización";
+  addLocationDialog.showModal();
+  locationType.focus();
+}
+
+function openEditLocationDialog(location) {
+  pendingLocationCoordinates = null;
+  editingLocationId = location.id;
+  addLocationForm.reset();
+  addLocationForm.querySelector("h2").textContent = "Editar localización";
+  addLocationForm.elements.type.value = location.type;
+  addLocationForm.elements.title.value = location.title;
+  addLocationForm.elements.info.value = location.info;
+  addLocationForm.elements.reference.value = location.reference;
+  addLocationDialog.showModal();
+  locationType.focus();
+}
+
+addLocationToggle.addEventListener("click", () => {
+  setAddingLocation(!isAddingLocation);
+  if (!isAddingLocation) {
+    cancelLocationDialogState();
+  }
+});
+
+closeLocationDialog.addEventListener("click", cancelLocationDialogState);
+cancelLocationDialog.addEventListener("click", cancelLocationDialogState);
+
+addLocationDialog.addEventListener("close", () => {
+  if (isSavingLocation) return;
+  pendingLocationCoordinates = null;
+  editingLocationId = null;
+  addLocationForm.reset();
+});
+
+addLocationForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!pendingLocationCoordinates && !editingLocationId) return;
+
+  isSavingLocation = true;
+  const locationData = {
+    type: addLocationForm.elements.type.value,
+    title: addLocationForm.elements.title.value.trim(),
+    info: addLocationForm.elements.info.value.trim(),
+    reference: addLocationForm.elements.reference.value.trim()
+  };
+
+  const savedLocation = editingLocationId
+    ? window.Locations.updateLocation(editingLocationId, locationData)
+    : window.Locations.addLocation({
+      ...pendingLocationCoordinates,
+      ...locationData
+    });
+
+  renderLocations(window.Locations.locations);
+  renderLocationsMenu(window.Locations.locations);
+  pendingLocationCoordinates = null;
+  editingLocationId = null;
+  addLocationForm.reset();
+  addLocationDialog.close();
+  isSavingLocation = false;
+
+  if (savedLocation) {
+    const marker = document.querySelector(`.poi[data-location-id="${CSS.escape(savedLocation.id)}"]`);
+    if (marker) {
+      showFeatureInfo(marker);
+    }
+  }
 });
 
 function getMapCoordinates(clientX, clientY) {
@@ -190,6 +308,17 @@ mapContainer.addEventListener("click", (event) => {
     return;
   }
 
+  if (isAddingLocation) {
+    setAddingLocation(false);
+    const { mapX, mapY } = getMapCoordinates(event.clientX, event.clientY);
+    const isInsideMap = mapX >= 0 && mapX <= MAP_WIDTH && mapY >= 0 && mapY <= MAP_HEIGHT;
+
+    if (isInsideMap && !addLocationDialog.open) {
+      openAddLocationDialog(mapX, mapY);
+    }
+    return;
+  }
+
   const clickedFeature = event.target.closest(".region, .poi");
   if (!clickedFeature) {
     closeInfo();
@@ -273,11 +402,16 @@ function clearActiveFeatures() {
 function showFeatureInfo(feature) {
   clearActiveFeatures();
   feature.classList.add("active");
+  const location = feature.classList.contains("poi") ? getLocationById(feature.dataset.locationId) : null;
+  const canEditLocation = Boolean(location?.editable);
 
   info.innerHTML = `
       <div class="info-header">
         <h2>${feature.dataset.title}</h2>
-        <button type="button" class="info-close" aria-label="Cerrar información">×</button>
+        <div class="info-actions">
+          ${canEditLocation ? `<button type="button" class="info-edit" data-location-id="${location.id}">Editar localización</button>` : ""}
+          <button type="button" class="info-close" aria-label="Cerrar información">×</button>
+        </div>
       </div>
       <div class="info-content">
         <p>${feature.dataset.info}</p>
@@ -299,6 +433,15 @@ function closeInfo() {
 }
 
 info.addEventListener("click", (event) => {
+  const editButton = event.target.closest(".info-edit");
+  if (editButton) {
+    const location = getLocationById(editButton.dataset.locationId);
+    if (location?.editable) {
+      openEditLocationDialog(location);
+    }
+    return;
+  }
+
   const closeButton = event.target.closest(".info-close");
   if (!closeButton) return;
   closeInfo();
@@ -335,6 +478,8 @@ function renderLocations(points = []) {
     marker.dataset.type = location.type;
     marker.dataset.x = String(location.x);
     marker.dataset.y = String(location.y);
+    marker.dataset.locationId = location.id;
+    marker.dataset.editable = String(location.editable);
 
     const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     circle.setAttribute("r", "18");
@@ -391,7 +536,7 @@ function renderLocationsMenu(points = []) {
       `;
 
       button.addEventListener("click", () => {
-        const selector = `.poi[data-type="${CSS.escape(location.type)}"][data-reference="${CSS.escape(location.reference)}"]`;
+        const selector = `.poi[data-location-id="${CSS.escape(location.id)}"]`;
         const marker = document.querySelector(selector);
         if (!marker) return;
         showFeatureInfo(marker);
@@ -408,6 +553,7 @@ function renderLocationsMenu(points = []) {
 
 mapContent.style.width = `${MAP_WIDTH}px`;
 mapContent.style.height = `${MAP_HEIGHT}px`;
+populateLocationTypes();
 renderRegions(window.Regions?.regions ?? []);
 renderLocations(window.Locations?.locations ?? []);
 renderLocationsMenu(window.Locations?.locations ?? []);
