@@ -1,3 +1,10 @@
+const MapApp = (() => {
+let initialized = false;
+
+function init() {
+if (initialized) return;
+initialized = true;
+
 const info = document.getElementById("info");
 const mapContainer = document.getElementById("mapContainer");
 const mapContent = document.getElementById("mapContent");
@@ -559,3 +566,12 @@ renderLocations(window.Locations?.locations ?? []);
 renderLocationsMenu(window.Locations?.locations ?? []);
 updateDebugVisibility();
 fitMapToView();
+
+}
+
+return {
+  init,
+};
+})();
+
+window.MapApp = MapApp;

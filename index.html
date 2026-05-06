@@ -8,8 +8,42 @@
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<main class="app">
-    <h1>Mapa interactivo</h1>
+<main id="authView" class="auth-page">
+    <section class="auth-panel" aria-labelledby="authTitle">
+        <div class="auth-copy">
+            <p class="auth-kicker">Acceso privado</p>
+            <h1 id="authTitle">Mapa interactivo</h1>
+            <p>Inicia sesion o crea una cuenta para acceder al mapa.</p>
+        </div>
+
+        <form id="authForm" class="auth-form">
+            <div class="auth-tabs" role="tablist" aria-label="Modo de acceso">
+                <button id="loginMode" class="auth-tab active" type="button" aria-pressed="true">Entrar</button>
+                <button id="registerMode" class="auth-tab" type="button" aria-pressed="false">Registro</button>
+            </div>
+
+            <label>
+                Email
+                <input id="authEmail" name="email" type="email" autocomplete="email" required />
+            </label>
+
+            <label>
+                Password
+                <input id="authPassword" name="password" type="password" autocomplete="current-password" minlength="6" required />
+            </label>
+
+            <p id="authMessage" class="auth-message" role="status"></p>
+
+            <button id="authSubmit" class="primary-button" type="submit">Entrar</button>
+        </form>
+    </section>
+</main>
+
+<main id="mapView" class="app hidden" aria-hidden="true">
+    <header class="app-header">
+        <h1>Mapa interactivo</h1>
+        <button id="logoutButton" class="secondary-button" type="button">Salir</button>
+    </header>
 
     <div class="map-stage">
         <button id="menuToggle" class="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="sideMenu">☰</button>
@@ -70,8 +104,13 @@
     </dialog>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabaseConfig.js"></script>
+<script src="auth.js"></script>
+<script src="llamadasAjax.js"></script>
 <script src="locations.js"></script>
 <script src="regions.js"></script>
 <script src="script.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const SUPABASE_ROOT_URL = "https://wtkumfcjqqmgokgrbxxr.supabase.co";
+const SUPABASE_ROOT_URL = window.AppConfig?.supabase?.rootUrl ?? "https://wtkumfcjqqmgokgrbxxr.supabase.co";
 
 const CYBER_LOCATION_TYPES_URL = `${SUPABASE_ROOT_URL}/functions/v1/cyber-location-types`;
 const CYBER_LOCATION_URL = `${SUPABASE_ROOT_URL}/functions/v1/cyber-location`;
@@ -6,6 +6,7 @@ const CYBER_LOCATION_URL = `${SUPABASE_ROOT_URL}/functions/v1/cyber-location`;
 function ajaxRequest(url, options = {}) {
   const headers = {
     "Content-Type": "application/json",
+    ...getAuthHeaders(),
     ...options.headers,
   };
 
@@ -23,6 +24,11 @@ function ajaxRequest(url, options = {}) {
 
     return response.json();
   });
+}
+
+function getAuthHeaders() {
+  const token = window.AppSession?.accessToken;
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 function getCyberLocationTypes() {
