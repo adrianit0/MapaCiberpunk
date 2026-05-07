@@ -1,7 +1,7 @@
 const MapApp = (() => {
 let initialized = false;
 
-function init() {
+async function init() {
 if (initialized) return;
 initialized = true;
 
@@ -71,7 +71,7 @@ function setAddingLocation(enabled) {
 function populateLocationTypes() {
   locationType.innerHTML = "";
 
-  Object.values(window.Locations?.LOCATION_TYPES ?? {}).forEach((type) => {
+  (window.Locations?.locationTypes ?? []).forEach((type) => {
     const option = document.createElement("option");
     option.value = type;
     option.textContent = type;
@@ -518,7 +518,7 @@ function renderLocationsMenu(points = []) {
     return acc;
   }, {});
 
-  Object.values(window.Locations?.LOCATION_TYPES ?? {}).forEach((type) => {
+  (window.Locations?.locationTypes ?? []).forEach((type) => {
     const items = grouped[type] ?? [];
     if (items.length === 0) return;
 
@@ -560,6 +560,15 @@ function renderLocationsMenu(points = []) {
 
 mapContent.style.width = `${MAP_WIDTH}px`;
 mapContent.style.height = `${MAP_HEIGHT}px`;
+
+try {
+  await window.Locations.load();
+} catch (error) {
+  console.error(error);
+  info.textContent = "No se pudieron cargar las localizaciones del servidor.";
+  return;
+}
+
 populateLocationTypes();
 renderRegions(window.Regions?.regions ?? []);
 renderLocations(window.Locations?.locations ?? []);
