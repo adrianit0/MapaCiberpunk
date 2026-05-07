@@ -152,6 +152,8 @@ const locations = [];
 let nextLocationId = 1;
 let isLoaded = false;
 let loadPromise = null;
+let loadPromiseMode = null;
+let loadedMode = null;
 
 function unwrapList(response) {
   if (Array.isArray(response)) return response;
@@ -192,6 +194,17 @@ function setLocationTypes(serverTypes) {
   });
 }
 
+function setDefaultLocationTypes() {
+  locationTypes.length = 0;
+  Object.keys(typeColors).forEach((type) => delete typeColors[type]);
+  Object.keys(typeNamesById).forEach((id) => delete typeNamesById[id]);
+
+  Object.values(DEFAULT_LOCATION_TYPES).forEach((type) => {
+    locationTypes.push(type);
+    typeColors[type] = DEFAULT_TYPE_COLORS[type];
+  });
+}
+
 function normalizeServerLocation(location) {
   const rawType = location.type
     ?? location.location_type
@@ -227,6 +240,17 @@ function getLocationColor(type) {
 function resetLocations() {
   locations.length = 0;
   nextLocationId = 1;
+}
+
+function loadDefaultLocations() {
+  loadPromise = null;
+  loadPromiseMode = null;
+  setDefaultLocationTypes();
+  resetLocations();
+  default_locations.forEach((location) => addLocation({ ...location, editable: false }));
+  isLoaded = true;
+  loadedMode = "guest";
+  return Promise.resolve(locations);
 }
 
 function addLocation(location) {
@@ -305,9 +329,15 @@ function updateLocation(id, updates) {
 }
 
 function load() {
-  if (isLoaded) return Promise.resolve(locations);
-  if (loadPromise) return loadPromise;
+  const mode = window.AppSession?.isGuest ? "guest" : "authenticated";
+  if (isLoaded && loadedMode === mode) return Promise.resolve(locations);
+  if (loadPromise && loadPromiseMode === mode) return loadPromise;
 
+  if (mode === "guest") {
+    return loadDefaultLocations();
+  }
+
+  loadPromiseMode = mode;
   loadPromise = Promise.all([
     window.LlamadasAjax.getCyberLocationTypes(),
     window.LlamadasAjax.getCyberLocation()
@@ -323,10 +353,14 @@ function load() {
         .forEach((location) => addLocation(location));
 
       isLoaded = true;
+      loadedMode = "authenticated";
+      loadPromise = null;
+      loadPromiseMode = null;
       return locations;
     })
     .catch((error) => {
       loadPromise = null;
+      loadPromiseMode = null;
       throw error;
     });
 

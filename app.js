@@ -11,6 +11,7 @@ const App = (() => {
     authEmail: "authEmail",
     authPassword: "authPassword",
     authSubmit: "authSubmit",
+    guestAccess: "guestAccess",
     authMessage: "authMessage",
     loginMode: "loginMode",
     registerMode: "registerMode",
@@ -29,7 +30,9 @@ const App = (() => {
 
   function setSubmitting(isSubmitting) {
     const submitButton = getElement(selectors.authSubmit);
+    const guestButton = getElement(selectors.guestAccess);
     submitButton.disabled = isSubmitting;
+    guestButton.disabled = isSubmitting;
     submitButton.textContent = isSubmitting
       ? "Procesando..."
       : state.mode === "login" ? "Entrar" : "Crear cuenta";
@@ -61,6 +64,7 @@ const App = (() => {
     window.AppSession = {
       accessToken: session?.access_token ?? null,
       user: session?.user ?? null,
+      isGuest: Boolean(session?.isGuest),
     };
 
     authView.classList.toggle("hidden", isAuthenticated);
@@ -71,6 +75,17 @@ const App = (() => {
     if (isAuthenticated) {
       window.MapApp.init();
     }
+  }
+
+  function createGuestSession() {
+    return {
+      access_token: null,
+      isGuest: true,
+      user: {
+        id: "guest",
+        email: null,
+      },
+    };
   }
 
   function handleAuthResult(result, successMessage) {
@@ -112,7 +127,17 @@ const App = (() => {
         });
     });
 
+    getElement(selectors.guestAccess).addEventListener("click", () => {
+      setMessage("");
+      setViews(createGuestSession());
+    });
+
     getElement(selectors.logoutButton).addEventListener("click", () => {
+      if (window.AppSession?.isGuest) {
+        setViews(null);
+        return;
+      }
+
       window.Auth.signOut().catch((error) => {
         setMessage(error.message || "No se pudo cerrar la sesion.", "error");
       });

@@ -1,8 +1,16 @@
 const MapApp = (() => {
 let initialized = false;
+let currentDataMode = null;
+let refreshMapData = null;
 
 async function init() {
-if (initialized) return;
+if (initialized) {
+  const dataMode = window.AppSession?.isGuest ? "guest" : "authenticated";
+  if (currentDataMode !== dataMode && refreshMapData) {
+    await refreshMapData();
+  }
+  return;
+}
 initialized = true;
 
 const info = document.getElementById("info");
@@ -558,21 +566,28 @@ function renderLocationsMenu(points = []) {
   });
 }
 
+refreshMapData = async () => {
+  await window.Locations.load();
+  populateLocationTypes();
+  renderLocations(window.Locations?.locations ?? []);
+  renderLocationsMenu(window.Locations?.locations ?? []);
+  currentDataMode = window.AppSession?.isGuest ? "guest" : "authenticated";
+};
+
 mapContent.style.width = `${MAP_WIDTH}px`;
 mapContent.style.height = `${MAP_HEIGHT}px`;
+renderRegions(window.Regions?.regions ?? []);
 
 try {
-  await window.Locations.load();
+  await refreshMapData();
 } catch (error) {
   console.error(error);
-  info.textContent = "No se pudieron cargar las localizaciones del servidor.";
+  info.textContent = window.AppSession?.isGuest
+    ? "No se pudieron cargar las localizaciones por defecto."
+    : "No se pudieron cargar las localizaciones del servidor.";
   return;
 }
 
-populateLocationTypes();
-renderRegions(window.Regions?.regions ?? []);
-renderLocations(window.Locations?.locations ?? []);
-renderLocationsMenu(window.Locations?.locations ?? []);
 updateDebugVisibility();
 fitMapToView();
 
