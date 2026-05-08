@@ -2,6 +2,9 @@ const locationTypes = [];
 const typeColors = {};
 const typeNamesById = {};
 
+const AUTHENTICATED_LOCATION_TYPE_ID = "1";
+const AUTHENTICATED_LOCATION_TYPE_NAME = "Quests & Story";
+
 const DEFAULT_LOCATION_TYPES = Object.freeze({
   CULTURE_AND_ART: "Culture & Art",
   CLUBS_AND_NIGHTLIFE: "Clubs & Nightlife",
@@ -158,20 +161,68 @@ let loadedMode = null;
 function unwrapList(response) {
   if (Array.isArray(response)) return response;
   if (Array.isArray(response?.data)) return response.data;
+  if (Array.isArray(response?.data?.data)) return response.data.data;
+  if (Array.isArray(response?.body)) return response.body;
+  if (Array.isArray(response?.body?.data)) return response.body.data;
   if (Array.isArray(response?.locations)) return response.locations;
+  if (Array.isArray(response?.cyber_locations)) return response.cyber_locations;
+  if (Array.isArray(response?.cyberLocations)) return response.cyberLocations;
   if (Array.isArray(response?.location)) return response.location;
   if (Array.isArray(response?.types)) return response.types;
   if (Array.isArray(response?.locationTypes)) return response.locationTypes;
   if (Array.isArray(response?.location_types)) return response.location_types;
+  if (typeof response?.body === "string") {
+    try {
+      return unwrapList(JSON.parse(response.body));
+    } catch (_error) {
+      return [];
+    }
+  }
   return [];
 }
 
+function unwrapObject(response) {
+  if (!response) return null;
+  if (Array.isArray(response)) return response[0] ?? null;
+  if (Array.isArray(response?.data)) return response.data[0] ?? null;
+  if (Array.isArray(response?.data?.data)) return response.data.data[0] ?? null;
+  if (Array.isArray(response?.body)) return response.body[0] ?? null;
+  if (Array.isArray(response?.body?.data)) return response.body.data[0] ?? null;
+  if (typeof response?.body === "string") {
+    try {
+      return unwrapObject(JSON.parse(response.body));
+    } catch (_error) {
+      return null;
+    }
+  }
+  if (response.data && typeof response.data === "object") return response.data;
+  if (response.body && typeof response.body === "object") return response.body;
+  if (response.location && typeof response.location === "object") return response.location;
+  if (response.cyber_location && typeof response.cyber_location === "object") return response.cyber_location;
+  if (response.cyberLocation && typeof response.cyberLocation === "object") return response.cyberLocation;
+  if (typeof response === "object") return response;
+  return null;
+}
+
 function getTypeName(type) {
-  return type?.name ?? type?.title ?? type?.type ?? type?.label ?? type?.value ?? null;
+  return type?.name
+    ?? type?.title
+    ?? type?.type
+    ?? type?.label
+    ?? type?.value
+    ?? type?.description
+    ?? type?.nombre
+    ?? null;
 }
 
 function getTypeColor(type) {
-  return type?.color ?? type?.colour ?? type?.hex ?? type?.hex_color ?? type?.marker_color ?? null;
+  return type?.color
+    ?? type?.colour
+    ?? type?.hex
+    ?? type?.hex_color
+    ?? type?.marker_color
+    ?? type?.markerColor
+    ?? null;
 }
 
 function setLocationTypes(serverTypes) {
@@ -211,7 +262,12 @@ function normalizeServerLocation(location) {
     ?? location.location_type_id
     ?? location.locationType
     ?? location.locationTypeId
+    ?? location.type_id
+    ?? location.typeId
+    ?? location.category
+    ?? location.category_id
     ?? getTypeName(location.location_types)
+    ?? getTypeName(location.location_type)
     ?? getTypeName(location.locationTypeData);
   const type = typeof rawType === "object"
     ? getTypeName(rawType)
@@ -219,12 +275,12 @@ function normalizeServerLocation(location) {
 
   return {
     id: location.id == null ? undefined : String(location.id),
-    x: Number(location.x),
-    y: Number(location.y),
-    reference: String(location.reference ?? location.ref ?? ""),
+    x: Number(location.x ?? location.coord_x ?? location.coordinate_x ?? location.map_x),
+    y: Number(location.y ?? location.coord_y ?? location.coordinate_y ?? location.map_y),
+    reference: String(location.reference ?? location.ref ?? location.reference_number ?? location.number ?? ""),
     type,
-    title: String(location.title ?? location.name ?? ""),
-    info: String(location.info ?? location.description ?? ""),
+    title: String(location.title ?? location.name ?? location.nombre ?? ""),
+    info: String(location.info ?? location.description ?? location.descripcion ?? location.details ?? ""),
     editable: location.editable ?? true
   };
 }
@@ -233,8 +289,55 @@ function isKnownLocationType(type) {
   return locationTypes.includes(type);
 }
 
+function isAuthenticatedMode() {
+  return Boolean(window.AppSession && !window.AppSession.isGuest);
+}
+
+function getLocationTypeNameById(id) {
+  return typeNamesById[String(id)] ?? null;
+}
+
+function getAuthenticatedLocationType() {
+  const serverType = getLocationTypeNameById(AUTHENTICATED_LOCATION_TYPE_ID);
+  if (serverType) return serverType;
+  if (isKnownLocationType(AUTHENTICATED_LOCATION_TYPE_NAME)) return AUTHENTICATED_LOCATION_TYPE_NAME;
+  return null;
+}
+
+function normalizeLocationTypeForMode(type) {
+  if (!isAuthenticatedMode()) return type;
+  return getAuthenticatedLocationType() ?? type;
+}
+
 function getLocationColor(type) {
   return typeColors[type] ?? "#6f42c1";
+}
+
+function ensureLocationType(type) {
+  if (!type || isKnownLocationType(type)) return;
+  locationTypes.push(type);
+  typeColors[type] = DEFAULT_TYPE_COLORS[type] ?? "#6f42c1";
+}
+
+function validateLocation(location) {
+  const requiredKeys = ["x", "y", "title", "info", "reference", "type"];
+  const missingKeys = requiredKeys.filter((key) => !(key in location));
+
+  if (missingKeys.length > 0) {
+    throw new Error(`Faltan propiedades requeridas: ${missingKeys.join(", ")}`);
+  }
+
+  if (!Number.isInteger(location.x) || !Number.isInteger(location.y)) {
+    throw new Error("Las coordenadas x e y deben ser enteros.");
+  }
+
+  if (typeof location.title !== "string" || typeof location.info !== "string" || typeof location.reference !== "string") {
+    throw new Error("title, info y reference deben ser strings.");
+  }
+
+  if (!isKnownLocationType(location.type)) {
+    throw new Error("type no es válido.");
+  }
 }
 
 function resetLocations() {
@@ -254,6 +357,10 @@ function loadDefaultLocations() {
 }
 
 function addLocation(location) {
+  if (isAuthenticatedMode() && location.editable !== false && location.id == null) {
+    location.type = normalizeLocationTypeForMode(location.type);
+  }
+
   const requiredKeys = ["x", "y", "title", "info", "reference", "type"];
   const missingKeys = requiredKeys.filter((key) => !(key in location));
 
@@ -284,6 +391,54 @@ function addLocation(location) {
   return normalized;
 }
 
+function toServerLocationPayload(location) {
+  const typeId = location.location_type_id
+    ?? location.locationTypeId
+    ?? location.type_id
+    ?? AUTHENTICATED_LOCATION_TYPE_ID;
+  const parsedTypeId = Number(typeId);
+  const userId = window.AppSession?.user?.id;
+
+  if (!userId) {
+    throw new Error("No se pudo identificar el usuario autenticado.");
+  }
+
+  return {
+    x: location.x,
+    y: location.y,
+    reference: location.reference,
+    title: location.title,
+    info: location.info,
+    user_id: userId,
+    type_id: typeId == null || Number.isNaN(parsedTypeId) ? typeId : parsedTypeId
+  };
+}
+
+function createLocation(location) {
+  const localLocation = {
+    ...location,
+    type: normalizeLocationTypeForMode(location.type)
+  };
+
+  if (!isAuthenticatedMode()) {
+    return Promise.resolve(addLocation(localLocation));
+  }
+
+  validateLocation(localLocation);
+  const payload = toServerLocationPayload(localLocation);
+
+  return window.LlamadasAjax.postCyberLocation(payload)
+    .then((response) => {
+      const serverLocation = unwrapObject(response);
+      const savedLocation = serverLocation
+        ? normalizeServerLocation({ ...localLocation, ...serverLocation })
+        : localLocation;
+
+      ensureLocationType(savedLocation.type);
+      return addLocation(savedLocation);
+    });
+}
+
 function updateLocation(id, updates) {
   const location = locations.find((item) => item.id === id);
 
@@ -297,7 +452,8 @@ function updateLocation(id, updates) {
 
   const updated = {
     ...location,
-    ...updates
+    ...updates,
+    type: normalizeLocationTypeForMode(updates.type ?? location.type)
   };
 
   const requiredKeys = ["x", "y", "title", "info", "reference", "type"];
@@ -347,9 +503,12 @@ function load() {
       resetLocations();
 
       default_locations.forEach((location) => addLocation({ ...location, editable: false }));
-      unwrapList(serverLocations)
+      const parsedServerLocations = unwrapList(serverLocations)
         .map(normalizeServerLocation)
-        .filter((location) => location.type)
+        .filter((location) => location.type && Number.isInteger(location.x) && Number.isInteger(location.y));
+
+      parsedServerLocations.forEach((location) => ensureLocationType(location.type));
+      parsedServerLocations
         .forEach((location) => addLocation(location));
 
       isLoaded = true;
@@ -374,5 +533,9 @@ window.Locations = {
   locations,
   load,
   addLocation,
-  updateLocation
+  createLocation,
+  updateLocation,
+  getLocationTypeNameById,
+  getAuthenticatedLocationType,
+  AUTHENTICATED_LOCATION_TYPE_ID
 };

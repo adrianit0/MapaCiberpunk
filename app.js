@@ -149,7 +149,7 @@ const App = (() => {
     setMode("login");
 
     if (!window.Auth.hasConfig()) {
-      setMessage("Configura la anon key de Supabase en supabaseConfig.js para activar el login.", "error");
+      setMessage("Configura la Publishable key de Supabase en supabaseConfig.js para activar el login.", "error");
       getElement(selectors.authSubmit).disabled = true;
       return;
     }

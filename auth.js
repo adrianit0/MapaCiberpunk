@@ -2,13 +2,17 @@ const Auth = (() => {
   const config = window.AppConfig?.supabase;
   let client = null;
 
+  function getPublishableKey() {
+    return config?.publishableKey || config?.anonKey;
+  }
+
   function hasConfig() {
-    return Boolean(config?.rootUrl && config?.anonKey);
+    return Boolean(config?.rootUrl && getPublishableKey());
   }
 
   function getClient() {
     if (!hasConfig()) {
-      throw new Error("Falta configurar la anon key de Supabase en supabaseConfig.js.");
+      throw new Error("Falta configurar la Publishable key de Supabase en supabaseConfig.js.");
     }
 
     if (!window.supabase?.createClient) {
@@ -16,7 +20,7 @@ const Auth = (() => {
     }
 
     if (!client) {
-      client = window.supabase.createClient(config.rootUrl, config.anonKey);
+      client = window.supabase.createClient(config.rootUrl, getPublishableKey());
     }
 
     return client;

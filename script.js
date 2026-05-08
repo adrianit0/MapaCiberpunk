@@ -27,6 +27,7 @@ const addLocationForm = document.getElementById("addLocationForm");
 const closeLocationDialog = document.getElementById("closeLocationDialog");
 const cancelLocationDialog = document.getElementById("cancelLocationDialog");
 const locationType = document.getElementById("locationType");
+const guestLocationWarning = document.getElementById("guestLocationWarning");
 
 const DEBUG = false;
 
@@ -79,12 +80,53 @@ function setAddingLocation(enabled) {
 function populateLocationTypes() {
   locationType.innerHTML = "";
 
+  if (!window.AppSession?.isGuest) {
+    const fixedType = window.Locations?.getAuthenticatedLocationType?.() ?? "Quests & Story";
+    const option = document.createElement("option");
+    option.value = fixedType;
+    option.textContent = fixedType;
+    option.dataset.typeId = window.Locations?.AUTHENTICATED_LOCATION_TYPE_ID ?? "1";
+    locationType.appendChild(option);
+    locationType.value = fixedType;
+    locationType.disabled = true;
+    return;
+  }
+
+  locationType.disabled = false;
   (window.Locations?.locationTypes ?? []).forEach((type) => {
     const option = document.createElement("option");
     option.value = type;
     option.textContent = type;
     locationType.appendChild(option);
   });
+}
+
+function updateLocationFormMode() {
+  const isGuest = Boolean(window.AppSession?.isGuest);
+  guestLocationWarning?.classList.toggle("hidden", !isGuest);
+  populateLocationTypes();
+}
+
+function focusFirstEditableLocationField() {
+  if (locationType.disabled) {
+    addLocationForm.elements.title.focus();
+    return;
+  }
+
+  locationType.focus();
+}
+
+function getSelectedLocationType() {
+  if (!window.AppSession?.isGuest) {
+    return window.Locations?.getAuthenticatedLocationType?.() ?? locationType.value;
+  }
+
+  return locationType.value;
+}
+
+function getSelectedLocationTypeId() {
+  if (window.AppSession?.isGuest) return undefined;
+  return window.Locations?.AUTHENTICATED_LOCATION_TYPE_ID ?? "1";
 }
 
 function getLocationById(id) {
@@ -107,22 +149,24 @@ function openAddLocationDialog(mapX, mapY) {
   };
   editingLocationId = null;
   addLocationForm.reset();
+  updateLocationFormMode();
   addLocationForm.querySelector("h2").textContent = "Nueva localización";
   addLocationDialog.showModal();
-  locationType.focus();
+  focusFirstEditableLocationField();
 }
 
 function openEditLocationDialog(location) {
   pendingLocationCoordinates = null;
   editingLocationId = location.id;
   addLocationForm.reset();
+  updateLocationFormMode();
   addLocationForm.querySelector("h2").textContent = "Editar localización";
-  addLocationForm.elements.type.value = location.type;
+  addLocationForm.elements.type.value = getSelectedLocationType();
   addLocationForm.elements.title.value = location.title;
   addLocationForm.elements.info.value = location.info;
   addLocationForm.elements.reference.value = location.reference;
   addLocationDialog.showModal();
-  locationType.focus();
+  focusFirstEditableLocationField();
 }
 
 addLocationToggle.addEventListener("click", () => {
@@ -142,38 +186,46 @@ addLocationDialog.addEventListener("close", () => {
   addLocationForm.reset();
 });
 
-addLocationForm.addEventListener("submit", (event) => {
+addLocationForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (isSavingLocation) return;
   if (!pendingLocationCoordinates && !editingLocationId) return;
 
   isSavingLocation = true;
-  const locationData = {
-    type: addLocationForm.elements.type.value,
-    title: addLocationForm.elements.title.value.trim(),
-    info: addLocationForm.elements.info.value.trim(),
-    reference: addLocationForm.elements.reference.value.trim()
-  };
+  try {
+    const locationData = {
+      type: getSelectedLocationType(),
+      location_type_id: getSelectedLocationTypeId(),
+      title: addLocationForm.elements.title.value.trim(),
+      info: addLocationForm.elements.info.value.trim(),
+      reference: addLocationForm.elements.reference.value.trim()
+    };
 
-  const savedLocation = editingLocationId
-    ? window.Locations.updateLocation(editingLocationId, locationData)
-    : window.Locations.addLocation({
-      ...pendingLocationCoordinates,
-      ...locationData
-    });
+    const savedLocation = editingLocationId
+      ? window.Locations.updateLocation(editingLocationId, locationData)
+      : await window.Locations.createLocation({
+        ...pendingLocationCoordinates,
+        ...locationData
+      });
 
-  renderLocations(window.Locations.locations);
-  renderLocationsMenu(window.Locations.locations);
-  pendingLocationCoordinates = null;
-  editingLocationId = null;
-  addLocationForm.reset();
-  addLocationDialog.close();
-  isSavingLocation = false;
+    renderLocations(window.Locations.locations);
+    renderLocationsMenu(window.Locations.locations);
+    pendingLocationCoordinates = null;
+    editingLocationId = null;
+    addLocationForm.reset();
+    addLocationDialog.close();
 
-  if (savedLocation) {
-    const marker = document.querySelector(`.poi[data-location-id="${CSS.escape(savedLocation.id)}"]`);
-    if (marker) {
-      showFeatureInfo(marker);
+    if (savedLocation) {
+      const marker = document.querySelector(`.poi[data-location-id="${CSS.escape(savedLocation.id)}"]`);
+      if (marker) {
+        showFeatureInfo(marker);
+      }
     }
+  } catch (error) {
+    console.error(error);
+    alert(error.message || "No se pudo guardar la localizacion.");
+  } finally {
+    isSavingLocation = false;
   }
 });
 
@@ -568,7 +620,7 @@ function renderLocationsMenu(points = []) {
 
 refreshMapData = async () => {
   await window.Locations.load();
-  populateLocationTypes();
+  updateLocationFormMode();
   renderLocations(window.Locations?.locations ?? []);
   renderLocationsMenu(window.Locations?.locations ?? []);
   currentDataMode = window.AppSession?.isGuest ? "guest" : "authenticated";

@@ -1,4 +1,7 @@
 const SUPABASE_ROOT_URL = window.AppConfig?.supabase?.rootUrl ?? "https://wtkumfcjqqmgokgrbxxr.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = window.AppConfig?.supabase?.publishableKey
+  || window.AppConfig?.supabase?.anonKey
+  || "";
 
 const CYBER_LOCATION_TYPES_URL = `${SUPABASE_ROOT_URL}/functions/v1/cyber-location-types`;
 const CYBER_LOCATION_URL = `${SUPABASE_ROOT_URL}/functions/v1/cyber-location`;
@@ -6,6 +9,7 @@ const CYBER_LOCATION_URL = `${SUPABASE_ROOT_URL}/functions/v1/cyber-location`;
 function ajaxRequest(url, options = {}) {
   const headers = {
     "Content-Type": "application/json",
+    ...(SUPABASE_PUBLISHABLE_KEY ? { apikey: SUPABASE_PUBLISHABLE_KEY } : {}),
     ...getAuthHeaders(),
     ...options.headers,
   };
@@ -13,9 +17,11 @@ function ajaxRequest(url, options = {}) {
   return fetch(url, {
     ...options,
     headers,
-  }).then((response) => {
+  }).then(async (response) => {
     if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
+      const errorBody = await response.text().catch(() => "");
+      const detail = errorBody ? ` - ${errorBody}` : "";
+      throw new Error(`Error ${response.status}: ${response.statusText}${detail}`);
     }
 
     if (response.status === 204) {
@@ -28,7 +34,8 @@ function ajaxRequest(url, options = {}) {
 
 function getAuthHeaders() {
   const token = window.AppSession?.accessToken;
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  const bearerToken = token || SUPABASE_PUBLISHABLE_KEY;
+  return bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {};
 }
 
 function getCyberLocationTypes() {

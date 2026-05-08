@@ -505,6 +505,13 @@ h1 {
   font-size: 1.1rem;
 }
 
+.location-warning {
+  margin: 0;
+  color: #ff7b72;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .location-form label {
   display: flex;
   flex-direction: column;
