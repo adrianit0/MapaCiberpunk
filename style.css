@@ -291,7 +291,6 @@ h1 {
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.6);
-  color: white;
 }
 
 .map-container {
@@ -452,6 +451,34 @@ h1 {
   font: inherit;
   font-size: 0.85rem;
   cursor: pointer;
+}
+
+.info-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.info-icon-button svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.info-icon-button.info-delete {
+  background: #da3633;
 }
 
 .debug-info {

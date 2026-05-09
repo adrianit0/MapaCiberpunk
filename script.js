@@ -195,14 +195,14 @@ addLocationForm.addEventListener("submit", async (event) => {
   try {
     const locationData = {
       type: getSelectedLocationType(),
-      location_type_id: getSelectedLocationTypeId(),
+      type_id: getSelectedLocationTypeId(),
       title: addLocationForm.elements.title.value.trim(),
       info: addLocationForm.elements.info.value.trim(),
       reference: addLocationForm.elements.reference.value.trim()
     };
 
     const savedLocation = editingLocationId
-      ? window.Locations.updateLocation(editingLocationId, locationData)
+      ? await window.Locations.updateLocation(editingLocationId, locationData)
       : await window.Locations.createLocation({
         ...pendingLocationCoordinates,
         ...locationData
@@ -471,12 +471,30 @@ function showFeatureInfo(feature) {
   feature.classList.add("active");
   const location = feature.classList.contains("poi") ? getLocationById(feature.dataset.locationId) : null;
   const canEditLocation = Boolean(location?.editable);
-
+  const editableLocationActions = canEditLocation
+    ? `
+          <button type="button" class="info-icon-button info-edit" data-location-id="${location.id}" aria-label="Editar localizacion" title="Editar localizacion">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+          </button>
+          <button type="button" class="info-icon-button info-delete" data-location-id="${location.id}" aria-label="Eliminar localizacion" title="Eliminar localizacion">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M3 6h18" />
+              <path d="M8 6V4h8v2" />
+              <path d="m19 6-1 14H6L5 6" />
+              <path d="M10 11v5" />
+              <path d="M14 11v5" />
+            </svg>
+          </button>
+        `
+    : "";
   info.innerHTML = `
       <div class="info-header">
         <h2>${feature.dataset.title}</h2>
         <div class="info-actions">
-          ${canEditLocation ? `<button type="button" class="info-edit" data-location-id="${location.id}">Editar localización</button>` : ""}
+          ${editableLocationActions}
           <button type="button" class="info-close" aria-label="Cerrar información">×</button>
         </div>
       </div>
@@ -506,6 +524,26 @@ info.addEventListener("click", (event) => {
     if (location?.editable) {
       openEditLocationDialog(location);
     }
+    return;
+  }
+
+  const deleteButton = event.target.closest(".info-delete");
+  if (deleteButton) {
+    const location = getLocationById(deleteButton.dataset.locationId);
+    if (!location?.editable) return;
+
+    if (!confirm(`Eliminar la localización "${location.title}"?`)) return;
+
+    window.Locations.deleteLocation(location.id)
+      .then(() => {
+        renderLocations(window.Locations.locations);
+        renderLocationsMenu(window.Locations.locations);
+        closeInfo();
+      })
+      .catch((error) => {
+        console.error(error);
+        alert(error.message || "No se pudo eliminar la localización.");
+      });
     return;
   }
 
