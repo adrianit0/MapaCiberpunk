@@ -206,22 +206,55 @@ h1 {
   cursor: pointer;
 }
 
-.add-location-toggle {
+.map-actions {
   position: absolute;
   top: 12px;
   left: 64px;
   z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-location-toggle,
+.regions-toggle {
   min-height: 40px;
-  padding: 0 14px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.35);
   background: rgba(13, 17, 23, 0.9);
   color: #fff;
-  font-weight: 700;
   cursor: pointer;
 }
 
-.add-location-toggle.active {
+.add-location-toggle {
+  min-width: 0;
+  padding: 0 14px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.regions-toggle {
+  width: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.regions-toggle svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.add-location-toggle.active,
+.regions-toggle.active {
   border-color: #39d353;
   background: rgba(46, 160, 67, 0.92);
 }
@@ -343,6 +376,10 @@ h1 {
   stroke-width: 3;
   cursor: pointer;
   transition: 0.2s;
+}
+
+.overlay.regions-hidden .region {
+  display: none;
 }
 
 .region:hover,
@@ -627,9 +664,10 @@ h1 {
     max-height: 32%;
   }
 
-  .add-location-toggle {
+  .map-actions {
     right: 12px;
     left: auto;
     max-width: calc(100% - 76px);
   }
+
 }

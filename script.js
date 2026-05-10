@@ -23,6 +23,7 @@ const menuToggle = document.getElementById("menuToggle");
 const sideMenu = document.getElementById("sideMenu");
 const menuContent = document.getElementById("menuContent");
 const addLocationToggle = document.getElementById("addLocationToggle");
+const regionsToggle = document.getElementById("regionsToggle");
 const addLocationDialog = document.getElementById("addLocationDialog");
 const addLocationForm = document.getElementById("addLocationForm");
 const closeLocationDialog = document.getElementById("closeLocationDialog");
@@ -57,6 +58,7 @@ let pinchStartScale = scale;
 let debugClickedCoordinates = [];
 let isMenuOpen = false;
 let isAddingLocation = false;
+let areRegionsVisible = true;
 let pendingLocationCoordinates = null;
 let editingLocationId = null;
 let isSavingLocation = false;
@@ -77,6 +79,19 @@ function setAddingLocation(enabled) {
   addLocationToggle.classList.toggle("active", enabled);
   addLocationToggle.setAttribute("aria-pressed", String(enabled));
   mapContainer.classList.toggle("adding-location", enabled);
+}
+
+function setRegionsVisible(visible) {
+  areRegionsVisible = visible;
+  overlay.classList.toggle("regions-hidden", !visible);
+  regionsToggle.classList.toggle("active", visible);
+  regionsToggle.setAttribute("aria-pressed", String(visible));
+  regionsToggle.setAttribute("aria-label", visible ? "Ocultar regiones" : "Mostrar regiones");
+  regionsToggle.setAttribute("title", visible ? "Ocultar regiones" : "Mostrar regiones");
+
+  if (!visible && document.querySelector(".region.active")) {
+    closeInfo();
+  }
 }
 
 function populateLocationTypes() {
@@ -194,6 +209,10 @@ addLocationToggle.addEventListener("click", () => {
   if (!isAddingLocation) {
     cancelLocationDialogState();
   }
+});
+
+regionsToggle.addEventListener("click", () => {
+  setRegionsVisible(!areRegionsVisible);
 });
 
 closeLocationDialog.addEventListener("click", cancelLocationDialogState);
@@ -693,6 +712,7 @@ refreshMapData = async () => {
 clearMapData = () => {
   cancelLocationDialogState();
   setAddingLocation(false);
+  setRegionsVisible(true);
   setMenuOpen(false);
   renderLocations([]);
   renderLocationsMenu([]);
@@ -706,6 +726,7 @@ clearMapData = () => {
 mapContent.style.width = `${MAP_WIDTH}px`;
 mapContent.style.height = `${MAP_HEIGHT}px`;
 renderRegions(window.Regions?.regions ?? []);
+setRegionsVisible(areRegionsVisible);
 
 try {
   await refreshMapData();

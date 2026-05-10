@@ -48,7 +48,16 @@
 
     <div class="map-stage">
         <button id="menuToggle" class="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="sideMenu">☰</button>
-        <button id="addLocationToggle" class="add-location-toggle" type="button" aria-pressed="false">Añadir localización</button>
+        <div class="map-actions">
+            <button id="addLocationToggle" class="add-location-toggle" type="button" aria-pressed="false">Añadir localización</button>
+            <button id="regionsToggle" class="regions-toggle active" type="button" aria-label="Ocultar regiones" title="Ocultar regiones" aria-pressed="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="m12 2 9 5-9 5-9-5Z" />
+                    <path d="m3 12 9 5 9-5" />
+                    <path d="m3 17 9 5 9-5" />
+                </svg>
+            </button>
+        </div>
 
         <aside id="sideMenu" class="side-menu" aria-hidden="true">
             <div id="menuContent" class="side-menu-content"></div>
