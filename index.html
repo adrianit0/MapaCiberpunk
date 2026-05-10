@@ -40,9 +40,11 @@
     </section>
 </main>
 
-<section id="mapView" class="app hidden" aria-hidden="true">
-    <header class="app-header">
-        <h1>Herramientas de rol</h1>
+<section id="appView" class="app hidden" aria-hidden="true">
+    <header id="appHeader" class="app-header">
+        <div id="appHeaderTabs" class="app-header-tabs">
+
+        </div>
         <div class="app-header-actions">
             <button id="versionsButton" class="secondary-button" type="button">Ver versiones</button>
             <button id="logoutButton" class="secondary-button" type="button">Salir</button>
@@ -51,6 +53,16 @@
 
     <main id="appContent" class="app-content" aria-live="polite"></main>
 </section>
+
+<dialog id="versionsDialog" class="versions-dialog" aria-labelledby="versionsDialogTitle">
+    <div class="versions-panel">
+        <div class="versions-header">
+            <h2 id="versionsDialogTitle">Versiones</h2>
+            <button id="closeVersionsDialog" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+        </div>
+        <div id="versionsList" class="versions-list"></div>
+    </div>
+</dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabaseConfig.js"></script>

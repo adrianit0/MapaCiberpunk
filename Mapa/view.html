@@ -1,81 +1,73 @@
-<section class="map-stage" data-view="mapa">
-    <button id="menuToggle" class="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="sideMenu">☰</button>
-    <div class="map-actions">
-        <button id="addLocationToggle" class="add-location-toggle" type="button" aria-pressed="false">Añadir localización</button>
-        <button id="regionsToggle" class="regions-toggle active" type="button" aria-label="Ocultar regiones" title="Ocultar regiones" aria-pressed="true">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="m12 2 9 5-9 5-9-5Z" />
-                <path d="m3 12 9 5 9-5" />
-                <path d="m3 17 9 5 9-5" />
-            </svg>
-        </button>
-    </div>
-
-    <aside id="sideMenu" class="side-menu" aria-hidden="true">
-        <div id="menuContent" class="side-menu-content"></div>
-    </aside>
-
-    <div class="map-container" id="mapContainer" aria-label="Mapa navegable" role="application">
-        <div class="map-content" id="mapContent">
-            <img src="resource/mapa.jpg" alt="Mapa interactivo" draggable="false" />
-            <svg class="overlay" viewBox="0 0 4614 4606"></svg>
+<section id="mapPage" class="app-page map-page hidden" data-page="mapa">
+    <section class="map-stage" data-view="mapa">
+        <button id="menuToggle" class="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="sideMenu">☰</button>
+        <div class="map-actions">
+            <button id="addLocationToggle" class="add-location-toggle" type="button" aria-pressed="false">Añadir localización</button>
+            <button id="regionsToggle" class="regions-toggle active" type="button" aria-label="Ocultar regiones" title="Ocultar regiones" aria-pressed="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="m12 2 9 5-9 5-9-5Z" />
+                    <path d="m3 12 9 5 9-5" />
+                    <path d="m3 17 9 5 9-5" />
+                </svg>
+            </button>
         </div>
-    </div>
 
-    <section id="info" class="info" aria-live="polite">
-        Selecciona una región del mapa.
+        <aside id="sideMenu" class="side-menu" aria-hidden="true">
+            <div id="menuContent" class="side-menu-content"></div>
+        </aside>
+
+        <div class="map-container" id="mapContainer" aria-label="Mapa navegable" role="application">
+            <div class="map-content" id="mapContent">
+                <img src="resource/mapa.jpg" alt="Mapa interactivo" draggable="false" />
+                <svg class="overlay" viewBox="0 0 4614 4606"></svg>
+            </div>
+        </div>
+
+        <section id="info" class="info" aria-live="polite">
+            Selecciona una región del mapa.
+        </section>
+
+        <section id="debugInfo" class="debug-info" aria-live="off"></section>
     </section>
 
-    <section id="debugInfo" class="debug-info" aria-live="off"></section>
+    <dialog id="addLocationDialog" class="location-dialog">
+        <form id="addLocationForm" method="dialog" class="location-form">
+            <div class="location-form-header">
+                <h2>Nueva localización</h2>
+                <button id="closeLocationDialog" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+            </div>
+
+            <p id="guestLocationWarning" class="location-warning">AVISO: Los cambios no se guardarán tras actualizar ya que estás en modo invitado</p>
+
+            <label>
+                Tipo de localización
+                <select id="locationType" name="type" required></select>
+            </label>
+
+            <label>
+                Título
+                <input id="locationTitle" name="title" type="text" required />
+            </label>
+
+            <label>
+                Info
+                <textarea id="locationInfo" name="info" rows="4"></textarea>
+            </label>
+
+            <label>
+                Reference
+                <input id="locationReference" name="reference" type="text" minlength="1" maxlength="3" required />
+            </label>
+
+            <label>
+                Visibilidad
+                <select id="locationVisibility" name="visibility" required></select>
+            </label>
+
+            <div class="location-form-actions">
+                <button id="cancelLocationDialog" class="secondary-button" type="button">Cancelar</button>
+                <button class="primary-button" type="submit">Guardar</button>
+            </div>
+        </form>
+    </dialog>
 </section>
-
-<dialog id="addLocationDialog" class="location-dialog">
-    <form id="addLocationForm" method="dialog" class="location-form">
-        <div class="location-form-header">
-            <h2>Nueva localización</h2>
-            <button id="closeLocationDialog" class="dialog-close" type="button" aria-label="Cerrar">×</button>
-        </div>
-
-        <p id="guestLocationWarning" class="location-warning">AVISO: Los cambios no se guardarán tras actualizar ya que estás en modo invitado</p>
-
-        <label>
-            Tipo de localización
-            <select id="locationType" name="type" required></select>
-        </label>
-
-        <label>
-            Título
-            <input id="locationTitle" name="title" type="text" required />
-        </label>
-
-        <label>
-            Info
-            <textarea id="locationInfo" name="info" rows="4"></textarea>
-        </label>
-
-        <label>
-            Reference
-            <input id="locationReference" name="reference" type="text" minlength="1" maxlength="3" required />
-        </label>
-
-        <label>
-            Visibilidad
-            <select id="locationVisibility" name="visibility" required></select>
-        </label>
-
-        <div class="location-form-actions">
-            <button id="cancelLocationDialog" class="secondary-button" type="button">Cancelar</button>
-            <button class="primary-button" type="submit">Guardar</button>
-        </div>
-    </form>
-</dialog>
-
-<dialog id="versionsDialog" class="versions-dialog" aria-labelledby="versionsDialogTitle">
-    <div class="versions-panel">
-        <div class="versions-header">
-            <h2 id="versionsDialogTitle">Versiones</h2>
-            <button id="closeVersionsDialog" class="dialog-close" type="button" aria-label="Cerrar">×</button>
-        </div>
-        <div id="versionsList" class="versions-list"></div>
-    </div>
-</dialog>

@@ -7,7 +7,7 @@ const App = (() => {
 
   const selectors = {
     authView: "authView",
-    mapView: "mapView",
+    appView: "appView",
     authForm: "authForm",
     authEmail: "authEmail",
     authPassword: "authPassword",
@@ -106,7 +106,7 @@ const App = (() => {
   async function setViews(session) {
     const isAuthenticated = Boolean(session);
     const authView = getElement(selectors.authView);
-    const mapView = getElement(selectors.mapView);
+    const appView = getElement(selectors.appView);
 
     if (isAuthenticated) {
       window.AppSession = {
@@ -119,9 +119,9 @@ const App = (() => {
     }
 
     authView.classList.toggle("hidden", isAuthenticated);
-    mapView.classList.toggle("hidden", !isAuthenticated);
+    appView.classList.toggle("hidden", !isAuthenticated);
     authView.setAttribute("aria-hidden", String(isAuthenticated));
-    mapView.setAttribute("aria-hidden", String(!isAuthenticated));
+    appView.setAttribute("aria-hidden", String(!isAuthenticated));
 
     if (isAuthenticated) {
       await loadMenuApplication();
