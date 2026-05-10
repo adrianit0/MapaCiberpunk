@@ -2,6 +2,7 @@ const MapApp = (() => {
 let initialized = false;
 let currentDataMode = null;
 let refreshMapData = null;
+let clearMapData = null;
 
 async function init() {
 if (initialized) {
@@ -678,10 +679,28 @@ function renderLocationsMenu(points = []) {
 
 refreshMapData = async () => {
   await window.Locations.load();
+  if (!window.AppSession) {
+    currentDataMode = null;
+    return;
+  }
+
   updateLocationFormMode();
   renderLocations(window.Locations?.locations ?? []);
   renderLocationsMenu(window.Locations?.locations ?? []);
   currentDataMode = window.AppSession?.isGuest ? "guest" : "authenticated";
+};
+
+clearMapData = () => {
+  cancelLocationDialogState();
+  setAddingLocation(false);
+  setMenuOpen(false);
+  renderLocations([]);
+  renderLocationsMenu([]);
+  closeInfo();
+  debugClickedCoordinates = [];
+  isDragging = false;
+  pinchStartDistance = null;
+  currentDataMode = null;
 };
 
 mapContent.style.width = `${MAP_WIDTH}px`;
@@ -705,6 +724,10 @@ fitMapToView();
 
 return {
   init,
+  clearData() {
+    currentDataMode = null;
+    clearMapData?.();
+  },
 };
 })();
 

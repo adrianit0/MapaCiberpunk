@@ -163,6 +163,7 @@ let isLoaded = false;
 let loadPromise = null;
 let loadPromiseMode = null;
 let loadedMode = null;
+let loadVersion = 0;
 
 function unwrapList(response) {
   if (Array.isArray(response)) return response;
@@ -334,6 +335,16 @@ function validateLocationVisibility(location) {
 function resetLocations() {
   locations.length = 0;
   nextLocationId = 1;
+}
+
+function clearData() {
+  loadVersion += 1;
+  resetLocations();
+  setDefaultLocationTypes();
+  isLoaded = false;
+  loadPromise = null;
+  loadPromiseMode = null;
+  loadedMode = null;
 }
 
 function loadDefaultLocations() {
@@ -547,11 +558,24 @@ function load() {
   }
 
   loadPromiseMode = mode;
+  const requestVersion = loadVersion;
+  const requestUserId = window.AppSession?.user?.id ?? null;
   loadPromise = Promise.all([
     window.LlamadasAjax.getCyberLocationTypes(),
     window.LlamadasAjax.getCyberLocation()
   ])
     .then(([serverTypes, serverLocations]) => {
+      const currentUserId = window.AppSession?.user?.id ?? null;
+      const isStaleResponse = loadVersion !== requestVersion
+        || window.AppSession?.isGuest
+        || currentUserId !== requestUserId;
+
+      if (isStaleResponse) {
+        loadPromise = null;
+        loadPromiseMode = null;
+        return locations;
+      }
+
       setLocationTypes(serverTypes);
       resetLocations();
 
@@ -585,6 +609,7 @@ window.Locations = {
   typeColors,
   locations,
   load,
+  clearData,
   addLocation,
   createLocation,
   updateLocation,

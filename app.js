@@ -56,16 +56,30 @@ const App = (() => {
     setMessage("");
   }
 
+  function clearApplicationData() {
+    window.MapApp?.clearData?.();
+    window.Locations?.clearData?.();
+    window.AppSession = null;
+
+    const authForm = getElement(selectors.authForm);
+    authForm.reset();
+    setMode("login");
+  }
+
   function setViews(session) {
     const isAuthenticated = Boolean(session);
     const authView = getElement(selectors.authView);
     const mapView = getElement(selectors.mapView);
 
-    window.AppSession = {
-      accessToken: session?.access_token ?? null,
-      user: session?.user ?? null,
-      isGuest: Boolean(session?.isGuest),
-    };
+    if (isAuthenticated) {
+      window.AppSession = {
+        accessToken: session?.access_token ?? null,
+        user: session?.user ?? null,
+        isGuest: Boolean(session?.isGuest),
+      };
+    } else {
+      clearApplicationData();
+    }
 
     authView.classList.toggle("hidden", isAuthenticated);
     mapView.classList.toggle("hidden", !isAuthenticated);
@@ -138,9 +152,11 @@ const App = (() => {
         return;
       }
 
-      window.Auth.signOut().catch((error) => {
-        setMessage(error.message || "No se pudo cerrar la sesion.", "error");
-      });
+      window.Auth.signOut()
+        .then(() => setViews(null))
+        .catch((error) => {
+          setMessage(error.message || "No se pudo cerrar la sesion.", "error");
+        });
     });
   }
 
