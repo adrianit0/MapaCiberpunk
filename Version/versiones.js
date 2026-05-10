@@ -7,6 +7,11 @@ const Versiones = (() => {
                 "- Incluido botón para mostrar u ocultar las capas.<br>" +
                 "- Añadido campo Visibilidad a las localizaciones.<br>" +
                 "- Corregido error en el que provocaba que no limpiara los datos al cambiar de usuario"
+    },
+    {
+      version: "0.1.1",
+      fecha: new Date(2026, 4, 11),
+      cambios:  "- Incluido soporte para multi-app"
     }
   ];
 
