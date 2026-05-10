@@ -64,7 +64,7 @@ h1 {
   padding: 24px;
   background:
     linear-gradient(rgba(13, 17, 23, 0.72), rgba(13, 17, 23, 0.86)),
-    url("mapa.jpg") center / cover;
+    url("resource/mapa.jpg") center / cover;
 }
 
 .auth-panel {
