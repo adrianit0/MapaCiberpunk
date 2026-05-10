@@ -4,6 +4,12 @@ const typeNamesById = {};
 
 const AUTHENTICATED_LOCATION_TYPE_ID = "1";
 const AUTHENTICATED_LOCATION_TYPE_NAME = "Quests & Story";
+const LOCATION_VISIBILITY_ALL = 1;
+const LOCATION_VISIBILITY_ONLY_YOU = 2;
+const LOCATION_VISIBILITY_OPTIONS = Object.freeze([
+  { id: LOCATION_VISIBILITY_ALL, label: "Todos" },
+  { id: LOCATION_VISIBILITY_ONLY_YOU, label: "Solo t\u00fa" }
+]);
 
 const DEFAULT_LOCATION_TYPES = Object.freeze({
   CULTURE_AND_ART: "Culture & Art",
@@ -228,6 +234,7 @@ function normalizeServerLocation(location) {
     type,
     title: String(location.title ?? ""),
     info: String(location.info ?? ""),
+    visibility: normalizeLocationVisibility(location.visibility),
     editable: location.editable ?? true,
     cyber_location_type: location.cyber_location_type,
     color
@@ -256,6 +263,16 @@ function getAuthenticatedLocationType() {
 function normalizeLocationTypeForMode(type) {
   if (!isAuthenticatedMode()) return type;
   return getAuthenticatedLocationType() ?? type;
+}
+
+function normalizeLocationVisibility(visibility) {
+  if (visibility === "Todos") return LOCATION_VISIBILITY_ALL;
+  if (visibility === "Solo t\u00fa") return LOCATION_VISIBILITY_ONLY_YOU;
+
+  const parsedVisibility = Number(visibility);
+  return LOCATION_VISIBILITY_OPTIONS.some((option) => option.id === parsedVisibility)
+    ? parsedVisibility
+    : LOCATION_VISIBILITY_ALL;
 }
 
 function getLocationColor(type) {
@@ -295,9 +312,22 @@ function validateLocation(location) {
   }
 
   validateReference(location.reference);
+  validateLocationVisibility(location);
 
   if (!isKnownLocationType(location.type)) {
     throw new Error("type no es válido.");
+  }
+}
+
+function validateLocationVisibility(location) {
+  if (!("visibility" in location)) return;
+
+  const parsedVisibility = Number(location.visibility);
+  const hasValidId = LOCATION_VISIBILITY_OPTIONS.some((option) => option.id === parsedVisibility);
+  const hasLegacyLabel = location.visibility === "Todos" || location.visibility === "Solo t\u00fa";
+
+  if (!hasValidId && !hasLegacyLabel) {
+    throw new Error("visibility no es v\u00e1lido.");
   }
 }
 
@@ -338,6 +368,7 @@ function addLocation(location) {
   }
 
   validateReference(location.reference);
+  validateLocationVisibility(location);
 
   if (!isKnownLocationType(location.type)) {
     throw new Error("type no es válido.");
@@ -346,6 +377,7 @@ function addLocation(location) {
   const normalized = {
     ...location,
     id: location.id ?? String(nextLocationId++),
+    visibility: normalizeLocationVisibility(location.visibility),
     editable: location.editable ?? true,
     color: location.color ?? getLocationColor(location.type)
   };
@@ -369,6 +401,7 @@ function toServerLocationPayload(location, options = {}) {
     reference: location.reference,
     title: location.title,
     info: location.info,
+    visibility: normalizeLocationVisibility(location.visibility),
     user_id: userId,
     type_id: typeId == null || Number.isNaN(parsedTypeId) ? typeId : parsedTypeId
   };
@@ -439,6 +472,7 @@ function updateLocation(id, updates) {
   }
 
   validateReference(updated.reference);
+  validateLocationVisibility(updated);
 
   if (!isKnownLocationType(updated.type)) {
     throw new Error("type no es válido.");
@@ -447,6 +481,7 @@ function updateLocation(id, updates) {
   if (!isAuthenticatedMode()) {
     Object.assign(location, updated, {
       id,
+      visibility: normalizeLocationVisibility(updated.visibility),
       editable: true,
       color: getLocationColor(updated.type)
     });
@@ -466,6 +501,7 @@ function updateLocation(id, updates) {
       ensureLocationType(savedLocation.type);
       Object.assign(location, savedLocation, {
         id,
+        visibility: normalizeLocationVisibility(savedLocation.visibility),
         editable: true,
         color: savedLocation.color ?? getLocationColor(savedLocation.type)
       });
@@ -555,5 +591,8 @@ window.Locations = {
   deleteLocation,
   getLocationTypeNameById,
   getAuthenticatedLocationType,
+  LOCATION_VISIBILITY_OPTIONS,
+  LOCATION_VISIBILITY_ALL,
+  LOCATION_VISIBILITY_ONLY_YOU,
   AUTHENTICATED_LOCATION_TYPE_ID
 };

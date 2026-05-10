@@ -27,6 +27,7 @@ const addLocationForm = document.getElementById("addLocationForm");
 const closeLocationDialog = document.getElementById("closeLocationDialog");
 const cancelLocationDialog = document.getElementById("cancelLocationDialog");
 const locationType = document.getElementById("locationType");
+const locationVisibility = document.getElementById("locationVisibility");
 const guestLocationWarning = document.getElementById("guestLocationWarning");
 
 const DEBUG = false;
@@ -101,10 +102,27 @@ function populateLocationTypes() {
   });
 }
 
+function populateLocationVisibility() {
+  locationVisibility.innerHTML = "";
+
+  (window.Locations?.LOCATION_VISIBILITY_OPTIONS ?? [
+    { id: 1, label: "Todos" },
+    { id: 2, label: "Solo t\u00fa" }
+  ]).forEach((visibility) => {
+    const option = document.createElement("option");
+    option.value = String(visibility.id);
+    option.textContent = visibility.label;
+    locationVisibility.appendChild(option);
+  });
+
+  locationVisibility.value = String(window.Locations?.LOCATION_VISIBILITY_ALL ?? 1);
+}
+
 function updateLocationFormMode() {
   const isGuest = Boolean(window.AppSession?.isGuest);
   guestLocationWarning?.classList.toggle("hidden", !isGuest);
   populateLocationTypes();
+  populateLocationVisibility();
 }
 
 function focusFirstEditableLocationField() {
@@ -162,6 +180,7 @@ function openEditLocationDialog(location) {
   updateLocationFormMode();
   addLocationForm.querySelector("h2").textContent = "Editar localización";
   addLocationForm.elements.type.value = getSelectedLocationType();
+  addLocationForm.elements.visibility.value = String(location.visibility ?? window.Locations?.LOCATION_VISIBILITY_ALL ?? 1);
   addLocationForm.elements.title.value = location.title;
   addLocationForm.elements.info.value = location.info;
   addLocationForm.elements.reference.value = location.reference;
@@ -196,6 +215,7 @@ addLocationForm.addEventListener("submit", async (event) => {
     const locationData = {
       type: getSelectedLocationType(),
       type_id: getSelectedLocationTypeId(),
+      visibility: Number(addLocationForm.elements.visibility.value),
       title: addLocationForm.elements.title.value.trim(),
       info: addLocationForm.elements.info.value.trim(),
       reference: addLocationForm.elements.reference.value.trim()
