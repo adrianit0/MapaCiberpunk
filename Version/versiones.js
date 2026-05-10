@@ -17,6 +17,9 @@ const Versiones = (() => {
     list: "versionsList"
   };
 
+  let boundButton = null;
+  let boundDialog = null;
+
   function getElement(id) {
     return document.getElementById(id);
   }
@@ -56,6 +59,7 @@ const Versiones = (() => {
 
   function renderVersions() {
     const list = getElement(selectors.list);
+    if (!list) return;
     list.innerHTML = "";
 
     versiones
@@ -68,6 +72,7 @@ const Versiones = (() => {
 
   function openDialog() {
     const dialog = getElement(selectors.dialog);
+    if (!dialog) return;
     renderVersions();
     dialog.showModal();
   }
@@ -84,13 +89,20 @@ const Versiones = (() => {
     const dialog = getElement(selectors.dialog);
     const closeButton = getElement(selectors.closeButton);
 
-    button.addEventListener("click", openDialog);
-    closeButton.addEventListener("click", closeDialog);
-    dialog.addEventListener("click", (event) => {
-      if (event.target === dialog) {
-        closeDialog();
-      }
-    });
+    if (button && boundButton !== button) {
+      button.addEventListener("click", openDialog);
+      boundButton = button;
+    }
+
+    if (dialog && closeButton && boundDialog !== dialog) {
+      closeButton.addEventListener("click", closeDialog);
+      dialog.addEventListener("click", (event) => {
+        if (event.target === dialog) {
+          closeDialog();
+        }
+      });
+      boundDialog = dialog;
+    }
   }
 
   function init() {

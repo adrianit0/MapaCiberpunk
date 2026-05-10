@@ -12,8 +12,8 @@
     <section class="auth-panel" aria-labelledby="authTitle">
         <div class="auth-copy">
             <p class="auth-kicker">Acceso privado</p>
-            <h1 id="authTitle">Mapa interactivo Cyberpunk RED</h1>
-            <p>Inicia sesion o crea una cuenta para acceder al mapa de Night City 2045.</p>
+            <h1 id="authTitle">Herramientas de Rol para Cyberpunk RED y Lancer</h1>
+            <p>Inicia sesión o crea una cuenta para acceder a las herramientas de rol (Night City 2045 y Lancer).</p>
         </div>
 
         <form id="authForm" class="auth-form">
@@ -40,97 +40,17 @@
     </section>
 </main>
 
-<main id="mapView" class="app hidden" aria-hidden="true">
+<section id="mapView" class="app hidden" aria-hidden="true">
     <header class="app-header">
-        <h1>Mapa interactivo</h1>
+        <h1>Herramientas de rol</h1>
         <div class="app-header-actions">
             <button id="versionsButton" class="secondary-button" type="button">Ver versiones</button>
             <button id="logoutButton" class="secondary-button" type="button">Salir</button>
         </div>
     </header>
 
-    <div class="map-stage">
-        <button id="menuToggle" class="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="sideMenu">☰</button>
-        <div class="map-actions">
-            <button id="addLocationToggle" class="add-location-toggle" type="button" aria-pressed="false">Añadir localización</button>
-            <button id="regionsToggle" class="regions-toggle active" type="button" aria-label="Ocultar regiones" title="Ocultar regiones" aria-pressed="true">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="m12 2 9 5-9 5-9-5Z" />
-                    <path d="m3 12 9 5 9-5" />
-                    <path d="m3 17 9 5 9-5" />
-                </svg>
-            </button>
-        </div>
-
-        <aside id="sideMenu" class="side-menu" aria-hidden="true">
-            <div id="menuContent" class="side-menu-content"></div>
-        </aside>
-
-        <div class="map-container" id="mapContainer" aria-label="Mapa navegable" role="application">
-            <div class="map-content" id="mapContent">
-                <img src="resource/mapa.jpg" alt="Mapa interactivo" draggable="false" />
-
-                <svg class="overlay" viewBox="0 0 4614 4606"></svg>
-            </div>
-        </div>
-
-        <section id="info" class="info" aria-live="polite">
-            Selecciona una región del mapa.
-        </section>
-
-        <section id="debugInfo" class="debug-info" aria-live="off"></section>
-    </div>
-    <dialog id="addLocationDialog" class="location-dialog">
-        <form id="addLocationForm" method="dialog" class="location-form">
-            <div class="location-form-header">
-                <h2>Nueva localización</h2>
-                <button id="closeLocationDialog" class="dialog-close" type="button" aria-label="Cerrar">×</button>
-            </div>
-
-            <p id="guestLocationWarning" class="location-warning">AVISO: Los cambios no se guardaran tras actualizar ya que estás en modo invitado</p>
-
-            <label>
-                Tipo de localización
-                <select id="locationType" name="type" required></select>
-            </label>
-
-            <label>
-                Título
-                <input id="locationTitle" name="title" type="text" required />
-            </label>
-
-            <label>
-                Info
-                <textarea id="locationInfo" name="info" rows="4"></textarea>
-            </label>
-
-            <label>
-                Reference
-                <input id="locationReference" name="reference" type="text" minlength="1" maxlength="3" required />
-            </label>
-
-            <label>
-                Visibilidad
-                <select id="locationVisibility" name="visibility" required></select>
-            </label>
-
-            <div class="location-form-actions">
-                <button id="cancelLocationDialog" class="secondary-button" type="button">Cancelar</button>
-                <button class="primary-button" type="submit">Guardar</button>
-            </div>
-        </form>
-    </dialog>
-
-    <dialog id="versionsDialog" class="versions-dialog" aria-labelledby="versionsDialogTitle">
-        <div class="versions-panel">
-            <div class="versions-header">
-                <h2 id="versionsDialogTitle">Versiones</h2>
-                <button id="closeVersionsDialog" class="dialog-close" type="button" aria-label="Cerrar">×</button>
-            </div>
-            <div id="versionsList" class="versions-list"></div>
-        </div>
-    </dialog>
-</main>
+    <main id="appContent" class="app-content" aria-live="polite"></main>
+</section>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabaseConfig.js"></script>

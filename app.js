@@ -2,6 +2,7 @@ const App = (() => {
   const state = {
     mode: "login",
     authSubscription: null,
+    menuAssetsLoaded: false,
   };
 
   const selectors = {
@@ -38,6 +39,41 @@ const App = (() => {
       : state.mode === "login" ? "Entrar" : "Crear cuenta";
   }
 
+  function loadStylesheet(href) {
+    if (document.querySelector(`link[href="${href}"]`)) {
+      return;
+    }
+
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    document.head.appendChild(link);
+  }
+
+  function loadScript(src) {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error(`No se pudo cargar ${src}.`));
+      document.body.appendChild(script);
+    });
+  }
+
+  async function loadMenuApplication() {
+    if (!state.menuAssetsLoaded) {
+      loadStylesheet("Menu/styles.css");
+      await loadScript("Menu/presenter.js");
+      state.menuAssetsLoaded = true;
+    }
+
+    await window.MenuPresenter?.init?.();
+  }
+
   function setMode(mode) {
     state.mode = mode;
 
@@ -59,6 +95,7 @@ const App = (() => {
   function clearApplicationData() {
     window.MapApp?.clearData?.();
     window.Locations?.clearData?.();
+    window.MenuPresenter?.clear?.();
     window.AppSession = null;
 
     const authForm = getElement(selectors.authForm);
@@ -66,7 +103,7 @@ const App = (() => {
     setMode("login");
   }
 
-  function setViews(session) {
+  async function setViews(session) {
     const isAuthenticated = Boolean(session);
     const authView = getElement(selectors.authView);
     const mapView = getElement(selectors.mapView);
@@ -87,7 +124,7 @@ const App = (() => {
     mapView.setAttribute("aria-hidden", String(!isAuthenticated));
 
     if (isAuthenticated) {
-      window.MapApp.init();
+      await loadMenuApplication();
     }
   }
 
@@ -143,7 +180,9 @@ const App = (() => {
 
     getElement(selectors.guestAccess).addEventListener("click", () => {
       setMessage("");
-      setViews(createGuestSession());
+      setViews(createGuestSession()).catch((error) => {
+        setMessage(error.message || "No se pudo cargar la aplicación.", "error");
+      });
     });
 
     getElement(selectors.logoutButton).addEventListener("click", () => {
@@ -174,7 +213,11 @@ const App = (() => {
       .then(() => window.Auth.getSession())
       .then(setViews)
       .then(() => {
-        state.authSubscription = window.Auth.onAuthStateChange(setViews);
+        state.authSubscription = window.Auth.onAuthStateChange((session) => {
+          setViews(session).catch((error) => {
+            setMessage(error.message || "No se pudo cargar la aplicación.", "error");
+          });
+        });
       })
       .catch((error) => {
         setMessage(error.message || "No se pudo comprobar la sesion.", "error");

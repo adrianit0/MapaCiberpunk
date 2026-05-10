@@ -1,0 +1,65 @@
+.app-content {
+  flex: 1;
+  min-height: 0;
+}
+
+.main-menu {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.main-menu-nav {
+  min-height: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.main-menu-item {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+}
+
+.main-menu-item.active {
+  border-color: #39d353;
+  background: rgba(46, 160, 67, 0.92);
+}
+
+.main-menu-outlet {
+  min-width: 0;
+  min-height: 0;
+}
+
+.main-menu-outlet > .map-stage {
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  .main-menu {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .main-menu-nav {
+    display: flex;
+    padding: 8px;
+  }
+
+  .main-menu-item {
+    width: auto;
+    min-width: 110px;
+  }
+}
