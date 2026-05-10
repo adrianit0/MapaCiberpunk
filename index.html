@@ -43,7 +43,10 @@
 <main id="mapView" class="app hidden" aria-hidden="true">
     <header class="app-header">
         <h1>Mapa interactivo</h1>
-        <button id="logoutButton" class="secondary-button" type="button">Salir</button>
+        <div class="app-header-actions">
+            <button id="versionsButton" class="secondary-button" type="button">Ver versiones</button>
+            <button id="logoutButton" class="secondary-button" type="button">Salir</button>
+        </div>
     </header>
 
     <div class="map-stage">
@@ -117,6 +120,16 @@
             </div>
         </form>
     </dialog>
+
+    <dialog id="versionsDialog" class="versions-dialog" aria-labelledby="versionsDialogTitle">
+        <div class="versions-panel">
+            <div class="versions-header">
+                <h2 id="versionsDialogTitle">Versiones</h2>
+                <button id="closeVersionsDialog" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+            </div>
+            <div id="versionsList" class="versions-list"></div>
+        </div>
+    </dialog>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -126,6 +139,7 @@
 <script src="locations.js"></script>
 <script src="regions.js"></script>
 <script src="script.js"></script>
+<script src="versiones.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

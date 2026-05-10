@@ -42,6 +42,13 @@ h1 {
   flex-shrink: 0;
 }
 
+.app-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 .map-stage {
   position: relative;
   width: 100%;
@@ -546,7 +553,8 @@ h1 {
   color: #fff;
 }
 
-.location-dialog::backdrop {
+.location-dialog::backdrop,
+.versions-dialog::backdrop {
   background: rgba(0, 0, 0, 0.55);
 }
 
@@ -610,6 +618,71 @@ h1 {
   gap: 10px;
 }
 
+.versions-dialog {
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(720px, calc(100vh - 32px));
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 10px;
+  background: #0d1117;
+  color: #fff;
+}
+
+.versions-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: inherit;
+  padding: 18px;
+}
+
+.versions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.versions-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.versions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.version-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 12px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.version-item h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.version-item time {
+  color: #79c0ff;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.version-item p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.45;
+}
+
 .primary-button,
 .secondary-button,
 .dialog-close {
@@ -657,6 +730,15 @@ h1 {
 
   .auth-form {
     padding: 24px;
+  }
+
+  .app-header {
+    align-items: flex-start;
+  }
+
+  .app-header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .info {
