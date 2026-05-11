@@ -60,11 +60,13 @@
 .main-menu-app {
   min-height: 96px;
   padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
   justify-content: center;
-  gap: 7px;
+  column-gap: 12px;
+  row-gap: 7px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
@@ -80,11 +82,20 @@
   background: rgba(88, 166, 255, 0.14);
 }
 
+.main-menu-app-icon {
+  grid-row: 1 / -1;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
 .main-menu-app-title {
+  min-width: 0;
   font-weight: 800;
 }
 
 .main-menu-app-description {
+  min-width: 0;
   color: rgba(255, 255, 255, 0.72);
   font-size: 0.9rem;
   line-height: 1.35;

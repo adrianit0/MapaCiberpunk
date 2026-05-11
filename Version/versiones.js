@@ -2,7 +2,7 @@ const Versiones = (() => {
   const versiones = [
     {
       version: "0.1.0",
-      fecha: new Date(2026, 4, 10),
+      fecha: new Date(2026, 4, 10, 1, 0, 0),
       cambios:  [
           "Se añade el historial de versiones de la aplicación.",
           "Incluido botón para mostrar u ocultar las capas.",
@@ -12,7 +12,7 @@ const Versiones = (() => {
     },
     {
       version: "0.1.1",
-      fecha: new Date(2026, 4, 11),
+      fecha: new Date(2026, 4, 11, 1, 0, 0),
       cambios:  [
           "Incluido soporte para multi-app",
           "Se ha creado un menú para las diferentes aplicaciones",
@@ -21,7 +21,7 @@ const Versiones = (() => {
     },
     {
       version: "0.2.0",
-      fecha: new Date(2026, 4, 11),
+      fecha: new Date(2026, 4, 11, 5, 0, 0),
       cambios:  [
         "Nueva APP: Turnos de Lancer"
       ]

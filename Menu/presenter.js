@@ -9,6 +9,17 @@ const MenuPresenter = (() => {
     turnosLancerPage: "turnosLancerPage",
   };
 
+  const appIcons = {
+    [selectors.mapButton]: {
+      src: "Resources/MapIcon.png",
+      alt: "",
+    },
+    [selectors.turnosLancerButton]: {
+      src: "Resources/TurnIcon.png",
+      alt: "",
+    },
+  };
+
   const tabs = new Map();
   let menuLoaded = false;
   let mapLoaded = false;
@@ -114,6 +125,23 @@ const MenuPresenter = (() => {
     getElement(selectors.turnosLancerButton)?.addEventListener("click", openTurnosLancer);
   }
 
+  function addMenuAppIcons() {
+    Object.entries(appIcons).forEach(([buttonId, icon]) => {
+      const button = getElement(buttonId);
+      if (!button || button.querySelector(".main-menu-app-icon")) {
+        return;
+      }
+
+      const image = document.createElement("img");
+      image.className = "main-menu-app-icon";
+      image.src = icon.src;
+      image.alt = icon.alt;
+      image.setAttribute("aria-hidden", "true");
+
+      button.prepend(image);
+    });
+  }
+
   async function init() {
     const appContent = getElement(selectors.appContent);
     const appHeaderTabs = getElement(selectors.appHeaderTabs);
@@ -127,6 +155,7 @@ const MenuPresenter = (() => {
       mapLoaded = false;
       turnosLancerLoaded = false;
       createTab(selectors.menuPage, "Menu");
+      addMenuAppIcons();
       bindMenuEvents();
     }
 
