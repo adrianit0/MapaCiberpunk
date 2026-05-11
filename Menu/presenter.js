@@ -3,13 +3,16 @@ const MenuPresenter = (() => {
     appContent: "appContent",
     appHeaderTabs: "appHeaderTabs",
     mapButton: "openMapApp",
+    turnosLancerButton: "openTurnosLancerApp",
     menuPage: "menuPage",
     mapPage: "mapPage",
+    turnosLancerPage: "turnosLancerPage",
   };
 
   const tabs = new Map();
   let menuLoaded = false;
   let mapLoaded = false;
+  let turnosLancerLoaded = false;
 
   function getElement(id) {
     return document.getElementById(id);
@@ -90,8 +93,25 @@ const MenuPresenter = (() => {
     await window.MapPresenter?.init?.();
   }
 
+  async function openTurnosLancer() {
+    const appContent = getElement(selectors.appContent);
+    if (!appContent) return;
+
+    loadStylesheet("TurnosLancer/styles.css");
+
+    if (!turnosLancerLoaded || !getElement(selectors.turnosLancerPage)) {
+      appContent.insertAdjacentHTML("beforeend", await fetchHtml("TurnosLancer/view.html"));
+      turnosLancerLoaded = true;
+    }
+
+    createTab(selectors.turnosLancerPage, "Turnos de Lancer");
+    showPage(selectors.turnosLancerPage);
+    window.TurnosLancerPresenter?.init?.();
+  }
+
   function bindMenuEvents() {
     getElement(selectors.mapButton)?.addEventListener("click", openMap);
+    getElement(selectors.turnosLancerButton)?.addEventListener("click", openTurnosLancer);
   }
 
   async function init() {
@@ -105,6 +125,7 @@ const MenuPresenter = (() => {
       tabs.clear();
       menuLoaded = true;
       mapLoaded = false;
+      turnosLancerLoaded = false;
       createTab(selectors.menuPage, "Menu");
       bindMenuEvents();
     }

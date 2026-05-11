@@ -18,6 +18,13 @@ const Versiones = (() => {
           "Se ha creado un menú para las diferentes aplicaciones",
           "Se ha modificado el nombre de la APP para que sea multi-app"
       ]
+    },
+    {
+      version: "0.2.0",
+      fecha: new Date(2026, 4, 11),
+      cambios:  [
+        "Nueva APP: Turnos de Lancer"
+      ]
     }
   ];
 

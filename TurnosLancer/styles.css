@@ -1,0 +1,386 @@
+.turnos-lancer-page {
+  overflow: auto;
+  padding: 18px;
+}
+
+.turnos-lancer-layout {
+  width: 100%;
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: minmax(420px, 1fr) minmax(280px, 420px);
+  gap: 16px;
+}
+
+.turnos-panel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.turnos-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.turnos-panel-header h2,
+.turnos-dialog-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.turnos-kicker {
+  margin: 0 0 5px;
+  color: #79c0ff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.turnos-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.turnos-status {
+  min-height: 42px;
+  padding: 11px 12px;
+  border: 1px solid rgba(121, 192, 255, 0.35);
+  border-radius: 8px;
+  background: rgba(88, 166, 255, 0.12);
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 700;
+}
+
+.turnos-card-list {
+  flex: 1;
+  min-height: 240px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  align-content: start;
+  gap: 10px;
+  padding: 10px;
+  overflow-y: auto;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.turnos-roster .turnos-card-list {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.turnos-sequence .turnos-card-list {
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
+
+.turnos-card-list.drag-over {
+  border-color: #58a6ff;
+  background: rgba(88, 166, 255, 0.1);
+}
+
+.turno-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.5858 / 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  border: 2px solid #050505;
+  border-radius: 14px;
+  color: #fff;
+  cursor: grab;
+  font: inherit;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 18px rgba(0, 0, 0, 0.24);
+}
+
+.turnos-sequence .turno-card {
+  aspect-ratio: auto;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+.turno-card:active {
+  cursor: grabbing;
+}
+
+.turno-card.dragging {
+  opacity: 0.45;
+}
+
+.turno-card.active-turn {
+  border-color: #f2cc60;
+}
+
+.turno-card-ally {
+  background: linear-gradient(135deg, #1f7a3a, #39d353 52%, #9be9a8);
+}
+
+.turno-card-enemy {
+  background: linear-gradient(135deg, #8e1f1b, #f85149 52%, #ffaba8);
+}
+
+.turno-card-muted {
+  filter: grayscale(0.85) saturate(0.35);
+  opacity: 0.72;
+}
+
+.turno-card-name {
+  min-width: 0;
+  max-width: calc(100% - 28px);
+  overflow-wrap: anywhere;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.55);
+}
+
+.turno-card-actions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+}
+
+.turno-card-menu-button {
+  width: 28px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.28);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+.turno-card-menu-button:hover,
+.turno-card-menu-button:focus-visible {
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.turno-card-menu {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  min-width: 116px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: #161b22;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.38);
+}
+
+.turno-card-menu-action {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.turno-card-menu-action:hover,
+.turno-card-menu-action:focus-visible {
+  background: rgba(88, 166, 255, 0.18);
+}
+
+.turnos-sequence .turno-card-name {
+  font-size: 0.9rem;
+  line-height: 1.1;
+}
+
+.turnos-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.turnos-dialog {
+  width: min(430px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: #0d1117;
+  color: #fff;
+}
+
+.turnos-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+}
+
+.turnos-dialog-header,
+.turnos-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.turnos-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.turnos-form input[type="text"] {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font: inherit;
+  padding: 10px 12px;
+}
+
+.turnos-type-field {
+  margin: 0;
+  padding: 12px;
+  display: flex;
+  gap: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+}
+
+.turnos-type-field legend {
+  padding: 0 4px;
+  font-weight: 800;
+}
+
+.turnos-type-field label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+@media (max-width: 820px) {
+  .turnos-lancer-page {
+    padding: 8px;
+  }
+
+  .turnos-lancer-layout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    gap: 8px;
+  }
+
+  .turnos-panel {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .turnos-panel-header {
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .turnos-actions {
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .turnos-panel-header h2 {
+    font-size: 0.95rem;
+  }
+
+  .turnos-kicker {
+    font-size: 0.68rem;
+  }
+
+  .turnos-status {
+    min-height: 34px;
+    padding: 8px;
+    font-size: 0.78rem;
+  }
+
+  .turnos-card-list {
+    min-height: 220px;
+    padding: 7px;
+    gap: 7px;
+  }
+
+  .turnos-roster .turnos-card-list {
+    grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  }
+
+  .turno-card {
+    padding: 8px;
+    border-radius: 10px;
+  }
+
+  .turno-card-name {
+    max-width: calc(100% - 22px);
+    font-size: 0.76rem;
+  }
+
+  .turnos-sequence .turno-card {
+    min-height: 34px;
+    padding: 7px 9px;
+  }
+
+  .turnos-sequence .turno-card-name {
+    font-size: 0.76rem;
+  }
+
+  .turno-card-actions {
+    top: 4px;
+    right: 4px;
+  }
+
+  .turno-card-menu-button {
+    width: 23px;
+    height: 21px;
+    border-radius: 7px;
+    font-size: 0.76rem;
+  }
+
+  .turno-card-menu {
+    top: 25px;
+    min-width: 94px;
+  }
+
+  .turno-card-menu-action {
+    min-height: 28px;
+    padding: 0 7px;
+    font-size: 0.78rem;
+  }
+
+  .primary-button,
+  .secondary-button {
+    min-height: 34px;
+    padding: 0 9px;
+    font-size: 0.8rem;
+  }
+}

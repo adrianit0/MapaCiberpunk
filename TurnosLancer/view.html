@@ -1,0 +1,62 @@
+<section id="turnosLancerPage" class="app-page turnos-lancer-page hidden" data-page="turnos-lancer">
+    <div class="turnos-lancer-layout">
+        <section class="turnos-panel turnos-roster" aria-labelledby="turnosRosterTitle">
+            <div class="turnos-panel-header">
+                <div>
+                    <p class="turnos-kicker">Participantes</p>
+                    <h2 id="turnosRosterTitle">Tarjetas disponibles</h2>
+                </div>
+                <button id="addTurnoCard" class="primary-button" type="button">Nueva tarjeta</button>
+            </div>
+
+            <div id="turnosRosterList" class="turnos-card-list" data-zone="roster" aria-label="Tarjetas disponibles"></div>
+        </section>
+
+        <section class="turnos-panel turnos-sequence" aria-labelledby="turnosSequenceTitle">
+            <div class="turnos-panel-header">
+                <div>
+                    <p class="turnos-kicker">Orden actual</p>
+                    <h2 id="turnosSequenceTitle">Turnos</h2>
+                </div>
+                <div class="turnos-actions">
+                    <button id="advanceTurno" class="secondary-button" type="button">Siguiente turno</button>
+                    <button id="clearTurnos" class="secondary-button" type="button">Limpiar</button>
+                </div>
+            </div>
+
+            <div id="turnosStatus" class="turnos-status" aria-live="polite">Arrastra una tarjeta aqui para iniciar la ronda.</div>
+            <div id="turnosSequenceList" class="turnos-card-list turnos-drop-zone" data-zone="sequence" aria-label="Lista de turnos"></div>
+        </section>
+    </div>
+
+    <dialog id="turnoCardDialog" class="turnos-dialog" aria-labelledby="turnoCardDialogTitle">
+        <form id="turnoCardForm" method="dialog" class="turnos-form">
+            <div class="turnos-dialog-header">
+                <h2 id="turnoCardDialogTitle">Nueva tarjeta</h2>
+                <button id="closeTurnoCardDialog" class="dialog-close" type="button" aria-label="Cerrar">x</button>
+            </div>
+
+            <label>
+                Nombre
+                <input id="turnoCardName" name="name" type="text" autocomplete="off" maxlength="60" required />
+            </label>
+
+            <fieldset class="turnos-type-field">
+                <legend>Bando</legend>
+                <label>
+                    <input type="radio" name="type" value="ally" checked />
+                    Aliado
+                </label>
+                <label>
+                    <input type="radio" name="type" value="enemy" />
+                    Enemigo
+                </label>
+            </fieldset>
+
+            <div class="turnos-form-actions">
+                <button id="cancelTurnoCardDialog" class="secondary-button" type="button">Cancelar</button>
+                <button id="saveTurnoCard" class="primary-button" type="submit">Crear</button>
+            </div>
+        </form>
+    </dialog>
+</section>
