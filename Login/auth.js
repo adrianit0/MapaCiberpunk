@@ -12,7 +12,7 @@ const Auth = (() => {
 
   function getClient() {
     if (!hasConfig()) {
-      throw new Error("Falta configurar la Publishable key de Supabase en supabaseConfig.js.");
+      throw new Error("Falta configurar la Publishable key de Supabase en Utils/supabaseConfig.js.");
     }
 
     if (!window.supabase?.createClient) {

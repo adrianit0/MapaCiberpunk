@@ -3,15 +3,21 @@ const Versiones = (() => {
     {
       version: "0.1.0",
       fecha: new Date(2026, 4, 10),
-      cambios:  "- Se añade el historial de versiones de la aplicación.<br>" +
-                "- Incluido botón para mostrar u ocultar las capas.<br>" +
-                "- Añadido campo Visibilidad a las localizaciones.<br>" +
-                "- Corregido error en el que provocaba que no limpiara los datos al cambiar de usuario"
+      cambios:  [
+          "Se añade el historial de versiones de la aplicación.",
+          "Incluido botón para mostrar u ocultar las capas.",
+          "Añadido campo Visibilidad a las localizaciones.",
+          "Corregido error en el que provocaba que no limpiara los datos al cambiar de usuario"
+      ]
     },
     {
       version: "0.1.1",
       fecha: new Date(2026, 4, 11),
-      cambios:  "- Incluido soporte para multi-app"
+      cambios:  [
+          "Incluido soporte para multi-app",
+          "Se ha creado un menú para las diferentes aplicaciones",
+          "Se ha modificado el nombre de la APP para que sea multi-app"
+      ]
     }
   ];
 
@@ -55,8 +61,14 @@ const Versiones = (() => {
     date.dateTime = formatDateTime(versionData.fecha);
     date.textContent = formatDate(versionData.fecha);
 
-    const changes = document.createElement("p");
-    changes.innerHTML = versionData.cambios;
+    const changes = document.createElement("ul");
+    changes.className = "version-changes";
+
+    versionData.cambios.forEach((cambio) => {
+      const change = document.createElement("li");
+      change.textContent = cambio;
+      changes.appendChild(change);
+    });
 
     item.append(title, date, changes);
     return item;

@@ -253,11 +253,16 @@ h1 {
   font-weight: 700;
 }
 
-.version-item p {
+.version-changes {
   grid-column: 1 / -1;
   margin: 0;
+  padding-left: 20px;
   color: rgba(255, 255, 255, 0.78);
   line-height: 1.45;
+}
+
+.version-changes li + li {
+  margin-top: 6px;
 }
 
 .primary-button,
