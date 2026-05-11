@@ -15,6 +15,17 @@ const MenuPresenter = (() => {
     return document.getElementById(id);
   }
 
+  function loadStylesheet(href) {
+    if (document.querySelector(`link[href="${href}"]`)) {
+      return;
+    }
+
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    document.head.appendChild(link);
+  }
+
   async function fetchHtml(path) {
     const response = await fetch(path);
     if (!response.ok) {
@@ -67,6 +78,8 @@ const MenuPresenter = (() => {
     const appContent = getElement(selectors.appContent);
     if (!appContent) return;
 
+    loadStylesheet("Mapa/styles.css");
+
     if (!mapLoaded || !getElement(selectors.mapPage)) {
       appContent.insertAdjacentHTML("beforeend", await fetchHtml("Mapa/view.html"));
       mapLoaded = true;
@@ -74,7 +87,7 @@ const MenuPresenter = (() => {
 
     createTab(selectors.mapPage, "Mapa");
     showPage(selectors.mapPage);
-    await window.MapApp?.init?.();
+    await window.MapPresenter?.init?.();
   }
 
   function bindMenuEvents() {

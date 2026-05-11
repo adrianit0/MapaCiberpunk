@@ -90,14 +90,6 @@
   line-height: 1.35;
 }
 
-.map-page {
-  min-height: 0;
-}
-
-.map-page > .map-stage {
-  height: 100%;
-}
-
 @media (max-width: 768px) {
   .app-header {
     gap: 10px;

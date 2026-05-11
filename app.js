@@ -93,7 +93,7 @@ const App = (() => {
   }
 
   function clearApplicationData() {
-    window.MapApp?.clearData?.();
+    window.MapPresenter?.clearData?.();
     window.Locations?.clearData?.();
     window.MenuPresenter?.clear?.();
     window.AppSession = null;
