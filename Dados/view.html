@@ -1,0 +1,48 @@
+<section id="dadosPage" class="app-page dados-page hidden" data-page="dados">
+    <div class="dados-layout">
+        <aside class="dados-panel dados-controls" aria-labelledby="dadosControlsTitle">
+            <div class="dados-panel-header">
+                <div>
+                    <p class="dados-kicker">Configuracion</p>
+                    <h2 id="dadosControlsTitle">Dados</h2>
+                </div>
+                <button id="clearDados" class="secondary-button" type="button">Limpiar</button>
+            </div>
+
+            <div id="diceControls" class="dice-controls" aria-label="Cantidad de dados"></div>
+
+            <label class="bonus-control" for="diceBonus">
+                <span>Bonus</span>
+                <input id="diceBonus" type="number" min="-999" max="999" step="1" value="0" />
+            </label>
+
+            <div id="diceFormula" class="dice-formula" aria-live="polite">Tirada: 1d20</div>
+            <button id="rollDice" class="primary-button roll-button" type="button">Lanzar</button>
+        </aside>
+
+        <section class="dados-panel dados-result" aria-labelledby="dadosResultTitle">
+            <div class="dados-panel-header">
+                <div>
+                    <p class="dados-kicker">Resultado</p>
+                    <h2 id="dadosResultTitle">Ultima tirada</h2>
+                </div>
+            </div>
+
+            <div class="result-stage">
+                <div id="diceTotal" class="dice-total"></div>
+                <div id="diceDetail" class="dice-detail">Pulsa Lanzar para tirar los dados.</div>
+            </div>
+        </section>
+
+        <aside class="dados-panel dados-history" aria-labelledby="dadosHistoryTitle">
+            <div class="dados-panel-header">
+                <div>
+                    <p class="dados-kicker">Registro</p>
+                    <h2 id="dadosHistoryTitle">Historial</h2>
+                </div>
+            </div>
+
+            <div id="diceHistory" class="dice-history-list" aria-live="polite"></div>
+        </aside>
+    </div>
+</section>

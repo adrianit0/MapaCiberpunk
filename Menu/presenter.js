@@ -4,9 +4,11 @@ const MenuPresenter = (() => {
     appHeaderTabs: "appHeaderTabs",
     mapButton: "openMapApp",
     turnosLancerButton: "openTurnosLancerApp",
+    dadosButton: "openDadosApp",
     menuPage: "menuPage",
     mapPage: "mapPage",
     turnosLancerPage: "turnosLancerPage",
+    dadosPage: "dadosPage",
   };
 
   const appIcons = {
@@ -18,12 +20,17 @@ const MenuPresenter = (() => {
       src: "Resources/TurnIcon.png",
       alt: "",
     },
+    [selectors.dadosButton]: {
+      src: "Resources/DiceIcon.png",
+      alt: "",
+    },
   };
 
   const tabs = new Map();
   let menuLoaded = false;
   let mapLoaded = false;
   let turnosLancerLoaded = false;
+  let dadosLoaded = false;
 
   function getElement(id) {
     return document.getElementById(id);
@@ -120,9 +127,26 @@ const MenuPresenter = (() => {
     window.TurnosLancerPresenter?.init?.();
   }
 
+  async function openDados() {
+    const appContent = getElement(selectors.appContent);
+    if (!appContent) return;
+
+    loadStylesheet("Dados/styles.css");
+
+    if (!dadosLoaded || !getElement(selectors.dadosPage)) {
+      appContent.insertAdjacentHTML("beforeend", await fetchHtml("Dados/view.html"));
+      dadosLoaded = true;
+    }
+
+    createTab(selectors.dadosPage, "Dados");
+    showPage(selectors.dadosPage);
+    window.DadosPresenter?.init?.();
+  }
+
   function bindMenuEvents() {
     getElement(selectors.mapButton)?.addEventListener("click", openMap);
     getElement(selectors.turnosLancerButton)?.addEventListener("click", openTurnosLancer);
+    getElement(selectors.dadosButton)?.addEventListener("click", openDados);
   }
 
   function addMenuAppIcons() {
@@ -154,6 +178,7 @@ const MenuPresenter = (() => {
       menuLoaded = true;
       mapLoaded = false;
       turnosLancerLoaded = false;
+      dadosLoaded = false;
       createTab(selectors.menuPage, "Menu");
       addMenuAppIcons();
       bindMenuEvents();

@@ -95,6 +95,7 @@ const App = (() => {
   function clearApplicationData() {
     window.MapPresenter?.clearData?.();
     window.TurnosLancerPresenter?.clearData?.();
+    window.DadosPresenter?.clearData?.();
     window.Locations?.clearData?.();
     window.MenuPresenter?.clear?.();
     window.AppSession = null;

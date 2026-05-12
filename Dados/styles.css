@@ -1,0 +1,306 @@
+.dados-page {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding: 18px;
+}
+
+.dados-layout {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(260px, 330px) minmax(320px, 1fr) minmax(280px, 380px);
+  gap: 16px;
+}
+
+.dados-panel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dados-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dados-panel-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.dados-kicker {
+  margin: 0 0 5px;
+  color: #79c0ff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.dice-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.dice-row,
+.bonus-control {
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.dice-row.active,
+.bonus-control.active {
+  border-color: #f2cc60;
+  box-shadow: 0 0 0 1px rgba(242, 204, 96, 0.38);
+}
+
+.dice-label,
+.bonus-control span {
+  font-weight: 800;
+}
+
+.counter {
+  display: grid;
+  grid-template-columns: 34px 48px 34px;
+  align-items: center;
+  gap: 5px;
+}
+
+.counter button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.counter input,
+.bonus-control input {
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  text-align: center;
+}
+
+.dice-formula {
+  min-height: 46px;
+  padding: 12px;
+  border: 1px solid rgba(121, 192, 255, 0.35);
+  border-radius: 8px;
+  background: rgba(88, 166, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.roll-button {
+  min-height: 58px;
+  font-size: 1.08rem;
+  font-weight: 900;
+}
+
+.roll-button:disabled {
+  cursor: wait;
+  opacity: 0.88;
+}
+
+.roll-button.rolling {
+  position: relative;
+  overflow: hidden;
+}
+
+.roll-button.rolling::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: translateX(-100%);
+  animation: dice-roll-button 0.7s linear infinite;
+}
+
+@keyframes dice-roll-button {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.dados-result {
+  justify-content: stretch;
+}
+
+.result-stage {
+  flex: 1;
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 18px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.dice-total {
+  color: #f2cc60;
+  font-size: clamp(5rem, 14vw, 12rem);
+  font-weight: 900;
+  line-height: 0.9;
+  text-align: center;
+  text-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+}
+
+.dice-detail {
+  width: min(520px, 100%);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.55;
+  text-align: center;
+  white-space: pre-line;
+}
+
+.dados-history {
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.dice-history-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.history-empty {
+  margin: 0;
+  padding: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.68);
+  line-height: 1.4;
+}
+
+.history-item {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.history-item-max-all {
+  border-color: rgba(86, 211, 100, 0.78);
+  background: rgba(46, 160, 67, 0.18);
+}
+
+.history-item-max-some {
+  border-color: rgba(242, 204, 96, 0.82);
+  background: rgba(187, 128, 9, 0.2);
+}
+
+.history-item-min-all {
+  border-color: rgba(248, 81, 73, 0.78);
+  background: rgba(248, 81, 73, 0.16);
+}
+
+.history-item-min-some {
+  border-color: rgba(255, 149, 67, 0.82);
+  background: rgba(210, 93, 0, 0.18);
+}
+
+.history-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.history-time,
+.history-user,
+.history-breakdown {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.history-total {
+  color: #f2cc60;
+  font-size: 1.45rem;
+  font-weight: 900;
+}
+
+.history-formula {
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.history-breakdown {
+  white-space: pre-line;
+}
+
+@media (max-width: 1050px) {
+  .dados-layout {
+    grid-template-columns: minmax(250px, 320px) minmax(320px, 1fr);
+  }
+
+  .dados-history {
+    grid-column: 1 / -1;
+    max-height: 320px;
+  }
+}
+
+@media (max-width: 760px) {
+  .dados-page {
+    padding: 8px;
+  }
+
+  .dados-layout {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .dados-panel {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .result-stage {
+    min-height: 260px;
+    padding: 16px;
+  }
+
+  .dice-detail {
+    font-size: 0.92rem;
+  }
+}

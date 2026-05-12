@@ -25,6 +25,13 @@ const Versiones = (() => {
       cambios:  [
         "Nueva APP: Turnos de Lancer"
       ]
+    },
+    {
+      version: "0.3.0",
+      fecha: new Date(2026, 4, 12, 5, 0, 0),
+      cambios:  [
+        "Nueva APP: Dados"
+      ]
     }
   ];
 
