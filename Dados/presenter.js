@@ -1,8 +1,40 @@
 const DadosPresenter = (() => {
-  const diceTypes = [4, 6, 8, 10, 12, 20, 100];
+  const presets = {
+    free: {
+      label: "Libre",
+      dice: [
+        { id: "d4", sides: 4, label: "Dado de 4" },
+        { id: "d6", sides: 6, label: "Dado de 6" },
+        { id: "d8", sides: 8, label: "Dado de 8" },
+        { id: "d10", sides: 10, label: "Dado de 10" },
+        { id: "d12", sides: 12, label: "Dado de 12" },
+        { id: "d20", sides: 20, label: "Dado de 20", defaultCount: 1 },
+        { id: "d100", sides: 100, label: "Dado de 100" },
+      ],
+      rollMode: "standard",
+    },
+    "cyberpunk-red": {
+      label: "Cyberpunk RED",
+      dice: [
+        { id: "d10", sides: 10, label: "Dado de 10", defaultCount: 1, max: 1, cyberpunkCritical: true },
+        { id: "d6", sides: 6, label: "Dado de 6" },
+      ],
+      rollMode: "cyberpunk-red",
+    },
+    lancer: {
+      label: "Lancer",
+      dice: [
+        { id: "d20", sides: 20, label: "Dado de 20", defaultCount: 1, max: 1 },
+        { id: "accuracy", sides: 6, label: "Dado de 6 (Accuracy)", formulaLabel: "d6 Accuracy", highestOnly: true, modifier: 1 },
+        { id: "difficulty", sides: 6, label: "Dado de 6 (Desventaja)", formulaLabel: "d6 Desventaja", highestOnly: true, modifier: -1 },
+      ],
+      rollMode: "lancer",
+    },
+  };
 
   const selectors = {
     page: "dadosPage",
+    preset: "dicePreset",
     diceControls: "diceControls",
     bonus: "diceBonus",
     formula: "diceFormula",
@@ -15,7 +47,8 @@ const DadosPresenter = (() => {
 
   const state = {
     boundPage: null,
-    counts: Object.fromEntries(diceTypes.map((sides) => [sides, sides === 20 ? 1 : 0])),
+    preset: "free",
+    counts: createDefaultCounts("free"),
     bonus: 0,
     history: [],
     isRolling: false,
@@ -27,6 +60,19 @@ const DadosPresenter = (() => {
     return document.getElementById(id);
   }
 
+  function getPreset() {
+    return presets[state.preset] || presets.free;
+  }
+
+  function getDiceOptions() {
+    return getPreset().dice;
+  }
+
+  function createDefaultCounts(presetId) {
+    const preset = presets[presetId] || presets.free;
+    return Object.fromEntries(preset.dice.map((die) => [die.id, die.defaultCount || 0]));
+  }
+
   function clampNumber(value, min, max) {
     const number = Number.parseInt(value, 10);
     if (Number.isNaN(number)) return min;
@@ -34,9 +80,9 @@ const DadosPresenter = (() => {
   }
 
   function getDiceParts() {
-    return diceTypes
-      .filter((sides) => state.counts[sides] > 0)
-      .map((sides) => `${state.counts[sides]}d${sides}`);
+    return getDiceOptions()
+      .filter((die) => state.counts[die.id] > 0)
+      .map((die) => `${state.counts[die.id]}${die.formulaLabel || `d${die.sides}`}`);
   }
 
   function getFormula() {
@@ -54,18 +100,13 @@ const DadosPresenter = (() => {
     return Math.floor(Math.random() * sides) + 1;
   }
 
-  function createRoll(counts, bonus) {
-    const groups = diceTypes
-      .filter((sides) => counts[sides] > 0)
-      .map((sides) => ({
-        sides,
-        count: counts[sides],
-        rolls: Array.from({ length: counts[sides] }, () => rollDie(sides)),
-      }));
+  function createRoll(counts, bonus, presetId = state.preset) {
+    const preset = presets[presetId] || presets.free;
+    const groups = preset.dice
+      .filter((die) => counts[die.id] > 0)
+      .map((die) => createGroupRoll(die, counts[die.id], preset.rollMode));
 
-    const diceTotal = groups.reduce((sum, group) => (
-      sum + group.rolls.reduce((groupSum, rollValue) => groupSum + rollValue, 0)
-    ), 0);
+    const diceTotal = groups.reduce((sum, group) => sum + group.total, 0);
 
     return {
       groups,
@@ -75,9 +116,83 @@ const DadosPresenter = (() => {
     };
   }
 
+  function createGroupRoll(die, count, rollMode) {
+    if (rollMode === "cyberpunk-red" && die.cyberpunkCritical) {
+      return createCyberpunkD10Group(die, count);
+    }
+
+    if (rollMode === "lancer" && die.highestOnly) {
+      return createHighestOnlyGroup(die, count);
+    }
+
+    return createStandardGroup(die, count);
+  }
+
+  function createStandardGroup(die, count) {
+    const rolls = Array.from({ length: count }, () => rollDie(die.sides));
+    const total = rolls.reduce((sum, rollValue) => sum + rollValue, 0) * (die.modifier || 1);
+
+    return {
+      die,
+      count,
+      rolls,
+      total,
+      line: `${count}d${die.sides} -> ${rolls.join(", ")}`,
+    };
+  }
+
+  function createCyberpunkD10Group(die, count) {
+    const rolls = [];
+    const entries = [];
+    let total = 0;
+
+    for (let index = 0; index < count; index += 1) {
+      const baseRoll = rollDie(die.sides);
+      rolls.push(baseRoll);
+      total += baseRoll;
+
+      if (baseRoll === die.sides) {
+        const criticalRoll = rollDie(die.sides);
+        rolls.push(criticalRoll);
+        total += criticalRoll;
+        entries.push(`${baseRoll} + critico ${criticalRoll}`);
+      } else if (baseRoll === 1) {
+        const fumbleRoll = rollDie(die.sides);
+        rolls.push(fumbleRoll);
+        total -= fumbleRoll;
+        entries.push(`${baseRoll} - pifia ${fumbleRoll}`);
+      } else {
+        entries.push(String(baseRoll));
+      }
+    }
+
+    return {
+      die,
+      count,
+      rolls,
+      total,
+      line: `${count}d${die.sides} -> ${entries.join(", ")}`,
+    };
+  }
+
+  function createHighestOnlyGroup(die, count) {
+    const rolls = Array.from({ length: count }, () => rollDie(die.sides));
+    const highest = Math.max(...rolls);
+    const modifier = die.modifier || 1;
+    const sign = modifier > 0 ? "+" : "-";
+
+    return {
+      die,
+      count,
+      rolls,
+      total: highest * modifier,
+      line: `${count}d${die.sides} ${die.label.replace(/^Dado de 6 /, "")} -> ${rolls.join(", ")} (mayor ${sign}${highest})`,
+    };
+  }
+
   function getResultType(groups) {
     const rolls = groups.flatMap((group) => (
-      group.rolls.map((value) => ({ value, sides: group.sides }))
+      group.rolls.map((value) => ({ value, sides: group.die.sides }))
     ));
 
     if (rolls.length === 0) return "";
@@ -94,13 +209,13 @@ const DadosPresenter = (() => {
     return "";
   }
 
-  function createDiceRow(sides) {
+  function createDiceRow(die) {
     const row = document.createElement("div");
     row.className = "dice-row";
 
     const label = document.createElement("span");
     label.className = "dice-label";
-    label.textContent = `Dado de ${sides}`;
+    label.textContent = die.label;
 
     const counter = document.createElement("div");
     counter.className = "counter";
@@ -108,25 +223,25 @@ const DadosPresenter = (() => {
     const decrement = document.createElement("button");
     decrement.type = "button";
     decrement.textContent = "-";
-    decrement.setAttribute("aria-label", `Quitar dado de ${sides}`);
+    decrement.setAttribute("aria-label", `Quitar ${die.label.toLowerCase()}`);
 
     const input = document.createElement("input");
     input.type = "number";
     input.min = "0";
-    input.max = "99";
+    input.max = String(die.max || 99);
     input.step = "1";
-    input.value = String(state.counts[sides]);
-    input.setAttribute("aria-label", `Cantidad de dados de ${sides}`);
-    input.dataset.sides = String(sides);
+    input.value = String(state.counts[die.id] || 0);
+    input.setAttribute("aria-label", `Cantidad de ${die.label.toLowerCase()}`);
+    input.dataset.dieId = die.id;
 
     const increment = document.createElement("button");
     increment.type = "button";
     increment.textContent = "+";
-    increment.setAttribute("aria-label", `Anadir dado de ${sides}`);
+    increment.setAttribute("aria-label", `Anadir ${die.label.toLowerCase()}`);
 
-    decrement.addEventListener("click", () => updateCount(sides, state.counts[sides] - 1));
-    increment.addEventListener("click", () => updateCount(sides, state.counts[sides] + 1));
-    input.addEventListener("input", () => updateCount(sides, input.value));
+    decrement.addEventListener("click", () => updateCount(die.id, (state.counts[die.id] || 0) - 1));
+    increment.addEventListener("click", () => updateCount(die.id, (state.counts[die.id] || 0) + 1));
+    input.addEventListener("input", () => updateCount(die.id, input.value));
 
     counter.append(decrement, input, increment);
     row.append(label, counter);
@@ -135,17 +250,21 @@ const DadosPresenter = (() => {
 
   function renderControls() {
     const container = getElement(selectors.diceControls);
-    if (!container || container.children.length > 0) return;
+    if (!container) return;
 
-    diceTypes.forEach((sides) => {
-      container.appendChild(createDiceRow(sides));
+    container.innerHTML = "";
+    getDiceOptions().forEach((die) => {
+      container.appendChild(createDiceRow(die));
     });
   }
 
   function syncControlValues() {
-    diceTypes.forEach((sides) => {
-      const input = document.querySelector(`#${selectors.diceControls} input[data-sides="${sides}"]`);
-      if (input) input.value = String(state.counts[sides]);
+    const preset = getElement(selectors.preset);
+    if (preset) preset.value = state.preset;
+
+    getDiceOptions().forEach((die) => {
+      const input = document.querySelector(`#${selectors.diceControls} input[data-die-id="${die.id}"]`);
+      if (input) input.value = String(state.counts[die.id] || 0);
     });
 
     const bonus = getElement(selectors.bonus);
@@ -154,18 +273,21 @@ const DadosPresenter = (() => {
   }
 
   function renderActiveControls() {
-    diceTypes.forEach((sides) => {
-      const input = document.querySelector(`#${selectors.diceControls} input[data-sides="${sides}"]`);
-      input?.closest(".dice-row")?.classList.toggle("active", state.counts[sides] > 0);
+    getDiceOptions().forEach((die) => {
+      const input = document.querySelector(`#${selectors.diceControls} input[data-die-id="${die.id}"]`);
+      input?.closest(".dice-row")?.classList.toggle("active", (state.counts[die.id] || 0) > 0);
     });
 
     getElement(selectors.bonus)?.closest(".bonus-control")?.classList.toggle("active", state.bonus !== 0);
   }
 
-  function updateCount(sides, value) {
-    state.counts[sides] = clampNumber(value, 0, 99);
-    const input = document.querySelector(`#${selectors.diceControls} input[data-sides="${sides}"]`);
-    if (input) input.value = String(state.counts[sides]);
+  function updateCount(dieId, value) {
+    const die = getDiceOptions().find((diceOption) => diceOption.id === dieId);
+    if (!die) return;
+
+    state.counts[dieId] = clampNumber(value, 0, die.max || 99);
+    const input = document.querySelector(`#${selectors.diceControls} input[data-die-id="${dieId}"]`);
+    if (input) input.value = String(state.counts[dieId]);
     renderActiveControls();
     renderFormula();
   }
@@ -178,6 +300,19 @@ const DadosPresenter = (() => {
     renderFormula();
   }
 
+  function updatePreset(value) {
+    if (!presets[value] || value === state.preset) return;
+
+    stopRollAnimation();
+    state.preset = value;
+    state.counts = createDefaultCounts(value);
+    state.bonus = 0;
+    renderControls();
+    syncControlValues();
+    renderFormula();
+    renderResult("", "Pulsa Lanzar para tirar los dados.", true);
+  }
+
   function renderFormula() {
     const formula = getElement(selectors.formula);
     if (formula) {
@@ -186,9 +321,7 @@ const DadosPresenter = (() => {
   }
 
   function formatBreakdown(groups, bonus) {
-    const lines = groups.map((group) => (
-      `${group.count}d${group.sides} -> ${group.rolls.join(", ")}`
-    ));
+    const lines = groups.map((group) => group.line);
 
     if (bonus !== 0) {
       lines.push(`Bonus -> ${bonus > 0 ? "+" : ""}${bonus}`);
@@ -237,6 +370,10 @@ const DadosPresenter = (() => {
       total.className = "history-total";
       total.textContent = String(entry.total);
 
+      const preset = document.createElement("div");
+      preset.className = "history-preset";
+      preset.textContent = entry.preset;
+
       const formula = document.createElement("div");
       formula.className = "history-formula";
       formula.textContent = entry.formula;
@@ -250,7 +387,7 @@ const DadosPresenter = (() => {
       user.textContent = `Lanzador: ${entry.user}`;
 
       topLine.append(time, total);
-      item.append(topLine, formula, breakdown, user);
+      item.append(topLine, preset, formula, breakdown, user);
       container.appendChild(item);
     });
   }
@@ -263,7 +400,7 @@ const DadosPresenter = (() => {
       "min-some": "al menos un dado ha sacado pifia",
     };
     const resultLabel = labels[entry.resultType] ? `, ${labels[entry.resultType]}` : "";
-    return `${entry.time}, ${entry.formula}, resultado ${entry.total}${resultLabel}, lanzador ${entry.user}`;
+    return `${entry.time}, ${entry.preset}, ${entry.formula}, resultado ${entry.total}${resultLabel}, lanzador ${entry.user}`;
   }
 
   function setRolling(isRolling) {
@@ -294,15 +431,16 @@ const DadosPresenter = (() => {
   function roll() {
     if (state.isRolling) return;
 
+    const presetSnapshot = state.preset;
     const countsSnapshot = { ...state.counts };
     const bonusSnapshot = state.bonus;
     const formula = getFormula();
-    const finalRoll = createRoll(countsSnapshot, bonusSnapshot);
+    const finalRoll = createRoll(countsSnapshot, bonusSnapshot, presetSnapshot);
 
     setRolling(true);
 
     state.rollInterval = window.setInterval(() => {
-      const previewRoll = createRoll(countsSnapshot, bonusSnapshot);
+      const previewRoll = createRoll(countsSnapshot, bonusSnapshot, presetSnapshot);
       renderResult(previewRoll.total, null, false);
     }, 40);
 
@@ -314,6 +452,7 @@ const DadosPresenter = (() => {
 
       state.history.unshift({
         time: new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+        preset: presets[presetSnapshot].label,
         formula,
         total: finalRoll.total,
         breakdown: finalRoll.breakdown,
@@ -327,17 +466,16 @@ const DadosPresenter = (() => {
 
   function clearRoll() {
     stopRollAnimation();
-    state.counts = Object.fromEntries(diceTypes.map((sides) => [sides, sides === 20 ? 1 : 0]));
+    state.counts = createDefaultCounts(state.preset);
     state.bonus = 0;
-    diceTypes.forEach((sides) => {
-      const input = document.querySelector(`#${selectors.diceControls} input[data-sides="${sides}"]`);
-      if (input) input.value = String(state.counts[sides]);
-    });
-    updateBonus(0);
+    renderControls();
+    syncControlValues();
+    renderFormula();
     renderResult("", "Pulsa Lanzar para tirar los dados.", true);
   }
 
   function bindEvents() {
+    getElement(selectors.preset)?.addEventListener("change", (event) => updatePreset(event.currentTarget.value));
     getElement(selectors.bonus)?.addEventListener("input", (event) => updateBonus(event.currentTarget.value));
     getElement(selectors.roll)?.addEventListener("click", roll);
     getElement(selectors.clear)?.addEventListener("click", clearRoll);
@@ -363,11 +501,13 @@ const DadosPresenter = (() => {
     init,
     clearData() {
       stopRollAnimation();
-      state.counts = Object.fromEntries(diceTypes.map((sides) => [sides, sides === 20 ? 1 : 0]));
+      state.preset = "free";
+      state.counts = createDefaultCounts("free");
       state.bonus = 0;
       state.history = [];
       state.boundPage = null;
       state.isRolling = false;
+      renderControls();
       syncControlValues();
       renderFormula();
       renderResult("", "Pulsa Lanzar para tirar los dados.", true);

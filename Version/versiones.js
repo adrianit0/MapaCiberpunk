@@ -32,6 +32,13 @@ const Versiones = (() => {
       cambios:  [
         "Nueva APP: Dados"
       ]
+    },
+    {
+      version: "0.3.1",
+      fecha: new Date(2026, 4, 13, 5, 0, 0),
+      cambios:  [
+        "Incluido Preset con las tiradas según las reglas de Cyberpunk RED y Lancer"
+      ]
     }
   ];
 
