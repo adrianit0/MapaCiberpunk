@@ -37,7 +37,8 @@ const Versiones = (() => {
       version: "0.3.1",
       fecha: new Date(2026, 4, 13, 5, 0, 0),
       cambios:  [
-        "Incluido Preset con las tiradas según las reglas de Cyberpunk RED y Lancer"
+        "Incluido Preset con las tiradas según las reglas de Cyberpunk RED y Lancer",
+        "Corregido el Drag & Drop de Turnos de Lancer para moviles"
       ]
     }
   ];

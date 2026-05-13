@@ -21,6 +21,7 @@ const TurnosLancerPresenter = (() => {
     sequence: [],
     activeIndex: 0,
     draggedCardId: null,
+    touchDrag: null,
     editingCardId: null,
     openMenuCardId: null,
     documentClickBound: false,
@@ -100,6 +101,35 @@ const TurnosLancerPresenter = (() => {
       state.draggedCardId = null;
       cardElement.classList.remove("dragging");
       clearDropTargets();
+    });
+
+    cardElement.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "mouse" || event.button !== 0) return;
+      if (event.target.closest("button, .turno-card-menu")) return;
+
+      state.touchDrag = {
+        cardId: card.id,
+        element: cardElement,
+        startX: event.clientX,
+        startY: event.clientY,
+        currentX: event.clientX,
+        currentY: event.clientY,
+        isDragging: false,
+      };
+      state.openMenuCardId = null;
+      cardElement.setPointerCapture?.(event.pointerId);
+    });
+
+    cardElement.addEventListener("pointermove", (event) => {
+      updateTouchDrag(event);
+    });
+
+    cardElement.addEventListener("pointerup", (event) => {
+      finishTouchDrag(event);
+    });
+
+    cardElement.addEventListener("pointercancel", () => {
+      cancelTouchDrag();
     });
 
     return cardElement;
@@ -292,6 +322,97 @@ const TurnosLancerPresenter = (() => {
     state.activeIndex = Math.min(state.activeIndex, Math.max(state.sequence.length - 1, 0));
   }
 
+  function getDropZoneAtPoint(clientX, clientY) {
+    return document.elementFromPoint(clientX, clientY)?.closest(".turnos-card-list") || null;
+  }
+
+  function updateTouchDropTarget(clientX, clientY) {
+    clearDropTargets();
+    const dropZone = getDropZoneAtPoint(clientX, clientY);
+    dropZone?.classList.add("drag-over");
+    return dropZone;
+  }
+
+  function startTouchDrag(event, touchDrag) {
+    state.draggedCardId = touchDrag.cardId;
+    touchDrag.isDragging = true;
+    touchDrag.element.classList.add("dragging", "touch-dragging");
+    touchDrag.element.style.width = `${touchDrag.element.offsetWidth}px`;
+    touchDrag.element.style.height = `${touchDrag.element.offsetHeight}px`;
+    touchDrag.element.style.transform = "translate3d(0, 0, 0)";
+    touchDrag.element.style.zIndex = "20";
+    event.preventDefault();
+  }
+
+  function updateTouchDrag(event) {
+    const touchDrag = state.touchDrag;
+    if (!touchDrag || touchDrag.element !== event.currentTarget) return;
+
+    touchDrag.currentX = event.clientX;
+    touchDrag.currentY = event.clientY;
+
+    const deltaX = event.clientX - touchDrag.startX;
+    const deltaY = event.clientY - touchDrag.startY;
+    const distance = Math.hypot(deltaX, deltaY);
+
+    if (!touchDrag.isDragging && distance < 8) return;
+    if (!touchDrag.isDragging) {
+      startTouchDrag(event, touchDrag);
+    }
+
+    touchDrag.element.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0)`;
+    updateTouchDropTarget(event.clientX, event.clientY);
+    event.preventDefault();
+  }
+
+  function resetTouchDragElement(touchDrag) {
+    touchDrag.element.classList.remove("dragging", "touch-dragging");
+    touchDrag.element.style.removeProperty("width");
+    touchDrag.element.style.removeProperty("height");
+    touchDrag.element.style.removeProperty("transform");
+    touchDrag.element.style.removeProperty("z-index");
+  }
+
+  function finishTouchDrag(event) {
+    const touchDrag = state.touchDrag;
+    if (!touchDrag || touchDrag.element !== event.currentTarget) return;
+
+    state.touchDrag = null;
+
+    if (!touchDrag.isDragging) {
+      state.draggedCardId = null;
+      return;
+    }
+
+    const dropZone = updateTouchDropTarget(touchDrag.currentX, touchDrag.currentY);
+    if (dropZone && getCard(touchDrag.cardId)) {
+      if (dropZone.dataset.zone === "sequence") {
+        moveCardToSequence(
+          touchDrag.cardId,
+          getDropIndex(dropZone, touchDrag.currentX, touchDrag.currentY)
+        );
+      } else {
+        removeCardFromSequence(touchDrag.cardId);
+      }
+    }
+
+    state.draggedCardId = null;
+    resetTouchDragElement(touchDrag);
+    clearDropTargets();
+    render();
+    event.preventDefault();
+  }
+
+  function cancelTouchDrag() {
+    const touchDrag = state.touchDrag;
+    if (!touchDrag) return;
+
+    state.touchDrag = null;
+    state.draggedCardId = null;
+    resetTouchDragElement(touchDrag);
+    clearDropTargets();
+  }
+
   function bindDropZone(list) {
     list.addEventListener("dragover", (event) => {
       event.preventDefault();
@@ -341,6 +462,7 @@ const TurnosLancerPresenter = (() => {
       state.sequence = [];
       state.activeIndex = 0;
       state.openMenuCardId = null;
+      cancelTouchDrag();
       render();
     });
 
@@ -373,6 +495,7 @@ const TurnosLancerPresenter = (() => {
   return {
     init,
     clearData() {
+      cancelTouchDrag();
       state.cards = [];
       state.sequence = [];
       state.activeIndex = 0;
