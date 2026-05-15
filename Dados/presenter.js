@@ -38,6 +38,7 @@ const DadosPresenter = (() => {
     diceControls: "diceControls",
     bonus: "diceBonus",
     formula: "diceFormula",
+    formula: "diceFormula",
     roll: "rollDice",
     clear: "clearDados",
     total: "diceTotal",
@@ -51,6 +52,8 @@ const DadosPresenter = (() => {
     counts: createDefaultCounts("free"),
     bonus: 0,
     history: [],
+    historyLoadedForUserId: null,
+    historyLoadPromise: null,
     isRolling: false,
     rollInterval: null,
     rollTimeout: null,
@@ -58,6 +61,144 @@ const DadosPresenter = (() => {
 
   function getElement(id) {
     return document.getElementById(id);
+  }
+
+  function isAuthenticatedMode() {
+    return Boolean(window.AppSession && !window.AppSession.isGuest && window.AppSession.user?.id);
+  }
+
+  function getCurrentUserLabel() {
+    const user = window.AppSession?.user;
+    return user?.email || "Guest";
+  }
+
+  function unwrapList(response) {
+    if (Array.isArray(response)) return response;
+    return [];
+  }
+
+  function formatRollTime(value) {
+    const date = value ? new Date(value) : new Date();
+
+    if (Number.isNaN(date.getTime())) {
+      return new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    }
+
+    return date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  }
+
+  function normalizeServerRoll(roll) {
+    const profile = roll.profiles || roll.profile || {};
+
+    return {
+      id: roll.id == null ? undefined : String(roll.id),
+      time: formatRollTime(roll.rolled_at || roll.created_at),
+      preset: roll.preset_label || roll.preset_id || "Dados",
+      presetId: roll.preset_id,
+      rollMode: roll.roll_mode,
+      formula: roll.formula || "Sin dados",
+      counts: roll.counts || {},
+      bonus: Number(roll.bonus || 0),
+      groups: Array.isArray(roll.groups) ? roll.groups : [],
+      total: Number(roll.total || 0),
+      breakdown: roll.breakdown || "",
+      resultType: roll.result_type || "",
+      user: profile.username || roll.username || roll.userId || "Usuario",
+      userId: roll.userId,
+      rolledAt: roll.rolled_at,
+    };
+  }
+
+  function toServerRollPayload(entry) {
+    return {
+      id: entry.id,
+      preset_id: entry.presetId,
+      preset_label: entry.preset,
+      roll_mode: entry.rollMode,
+      formula: entry.formula,
+      counts: entry.counts,
+      bonus: entry.bonus,
+      groups: entry.groups,
+      total: entry.total,
+      breakdown: entry.breakdown,
+      result_type: entry.resultType || null,
+      rolled_at: entry.rolledAt,
+    };
+  }
+
+  function loadHistory() {
+    if (!isAuthenticatedMode()) {
+      state.historyLoadedForUserId = null;
+      state.historyLoadPromise = null;
+      renderHistory();
+      return Promise.resolve(state.history);
+    }
+
+    const userId = window.AppSession.user.id;
+    if (state.historyLoadedForUserId === userId) return Promise.resolve(state.history);
+    if (state.historyLoadPromise) return state.historyLoadPromise;
+
+    if (!window.DadosAjax?.getDiceRolls) {
+      renderHistory();
+      return Promise.resolve(state.history);
+    }
+
+    state.historyLoadPromise = window.DadosAjax.getDiceRolls()
+      .then((response) => {
+        if (window.AppSession?.user?.id !== userId || window.AppSession?.isGuest) {
+          return state.history;
+        }
+
+        state.history = unwrapList(response).map(normalizeServerRoll);
+        state.historyLoadedForUserId = userId;
+        renderHistory();
+        return state.history;
+      })
+      .catch((error) => {
+        console.error("No se pudo cargar el historial de dados.", error);
+        return state.history;
+      })
+      .finally(() => {
+        state.historyLoadPromise = null;
+      });
+
+    return state.historyLoadPromise;
+  }
+
+  function saveRoll(entry) {
+    if (!isAuthenticatedMode() || !window.DadosAjax?.postDiceRoll) {
+      return Promise.resolve(entry);
+    }
+
+    return window.DadosAjax.postDiceRoll(toServerRollPayload(entry))
+      .then((response) => {
+        const savedEntry = normalizeServerRoll(response);
+        const index = state.history.indexOf(entry);
+
+        if (index !== -1) {
+          state.history[index] = savedEntry;
+          renderHistory();
+        }
+
+        return savedEntry;
+      })
+      .catch((error) => {
+        console.error("No se pudo guardar la tirada de dados.", error);
+        return entry;
+      });
+  }
+
+  function deleteHistoryEntry(entry) {
+    if (!entry.id || !window.DadosAjax?.deleteDiceRoll) return;
+
+    window.DadosAjax.deleteDiceRoll({ id: entry.id })
+      .then(() => {
+        state.history = state.history.filter((item) => item !== entry);
+        renderHistory();
+      })
+      .catch((error) => {
+        console.error("No se pudo eliminar la tirada de dados.", error);
+      });
   }
 
   function getPreset() {
@@ -388,6 +529,17 @@ const DadosPresenter = (() => {
 
       topLine.append(time, total);
       item.append(topLine, preset, formula, breakdown, user);
+
+      if (entry.id && isAuthenticatedMode()) {
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "secondary-button";
+        deleteButton.textContent = "Eliminar";
+        deleteButton.setAttribute("aria-label", `Eliminar tirada ${entry.formula}`);
+        deleteButton.addEventListener("click", () => deleteHistoryEntry(entry));
+        item.appendChild(deleteButton);
+      }
+
       container.appendChild(item);
     });
   }
@@ -450,16 +602,27 @@ const DadosPresenter = (() => {
       state.rollTimeout = null;
       renderResult(finalRoll.total, finalRoll.breakdown, true);
 
-      state.history.unshift({
-        time: new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+      const rolledAt = new Date().toISOString();
+      const historyEntry = {
+        time: formatRollTime(rolledAt),
         preset: presets[presetSnapshot].label,
+        presetId: presetSnapshot,
+        rollMode: presets[presetSnapshot].rollMode,
         formula,
+        counts: countsSnapshot,
+        bonus: bonusSnapshot,
+        groups: finalRoll.groups,
         total: finalRoll.total,
         breakdown: finalRoll.breakdown,
         resultType: finalRoll.resultType,
-        user: "Guest",
-      });
+        user: isAuthenticatedMode() ? getCurrentUserLabel() : "Guest",
+        userId: window.AppSession?.user?.id,
+        rolledAt,
+      };
+
+      state.history.unshift(historyEntry);
       renderHistory();
+      saveRoll(historyEntry);
       setRolling(false);
     }, 500);
   }
@@ -495,6 +658,7 @@ const DadosPresenter = (() => {
     syncControlValues();
     renderFormula();
     renderHistory();
+    loadHistory();
   }
 
   return {
@@ -505,6 +669,8 @@ const DadosPresenter = (() => {
       state.counts = createDefaultCounts("free");
       state.bonus = 0;
       state.history = [];
+      state.historyLoadedForUserId = null;
+      state.historyLoadPromise = null;
       state.boundPage = null;
       state.isRolling = false;
       renderControls();
