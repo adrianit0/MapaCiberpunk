@@ -40,6 +40,15 @@ const Versiones = (() => {
         "Incluido Preset con las tiradas según las reglas de Cyberpunk RED y Lancer",
         "Corregido el Drag & Drop de Turnos de Lancer para moviles"
       ]
+    },
+    {
+      version: "0.3.2",
+      fecha: new Date(2026, 4, 15, 5, 0, 0),
+      cambios:  [
+        "Mejorado sistema de almacenamiento de dados",
+        "Ahora, si estás logeado, se guardan las tiradas",
+        "Incluido el minijuego de cyberpunk hecho hace tiempo"
+      ]
     }
   ];
 

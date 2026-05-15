@@ -5,6 +5,7 @@ const MenuPresenter = (() => {
     mapButton: "openMapApp",
     turnosLancerButton: "openTurnosLancerApp",
     dadosButton: "openDadosApp",
+    miniRolCyberpunkButton: "openMiniRolCyberpunkApp",
     menuPage: "menuPage",
     mapPage: "mapPage",
     turnosLancerPage: "turnosLancerPage",
@@ -22,6 +23,10 @@ const MenuPresenter = (() => {
     },
     [selectors.dadosButton]: {
       src: "Resources/DiceIcon.png",
+      alt: "",
+    },
+    [selectors.miniRolCyberpunkButton]: {
+      src: "Resources/RoleIcon.png",
       alt: "",
     },
   };
@@ -143,10 +148,15 @@ const MenuPresenter = (() => {
     window.DadosPresenter?.init?.();
   }
 
+  function openMiniRolCyberpunk() {
+    window.open("https://adrianit0.github.io/MiniRolCyberpunk/", "_blank", "noopener,noreferrer");
+  }
+
   function bindMenuEvents() {
     getElement(selectors.mapButton)?.addEventListener("click", openMap);
     getElement(selectors.turnosLancerButton)?.addEventListener("click", openTurnosLancer);
     getElement(selectors.dadosButton)?.addEventListener("click", openDados);
+    getElement(selectors.miniRolCyberpunkButton)?.addEventListener("click", openMiniRolCyberpunk);
   }
 
   function addMenuAppIcons() {

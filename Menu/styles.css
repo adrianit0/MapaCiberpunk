@@ -43,7 +43,7 @@
 }
 
 .main-menu-content {
-  width: min(980px, 100%);
+  width: 100%;
 }
 
 .main-menu h2 {
