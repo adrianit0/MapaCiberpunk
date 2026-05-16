@@ -33,22 +33,52 @@ const Auth = (() => {
     });
   }
 
-  function signIn(email, password) {
-    return getClient().auth.signInWithPassword({
-      email,
-      password,
-    });
+  async function setClientSession(data) {
+    if (data?.session?.access_token && data?.session?.refresh_token) {
+      const { error } = await getClient().auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
+
+      if (error) throw error;
+    }
+
+    return {
+      data,
+      error: null,
+    };
   }
 
-  function signUp(email, password) {
-    return getClient().auth.signUp({
+  async function signIn(email, password) {
+    const data = await window.LoginAjax.postLogin({
       email,
       password,
     });
+
+    return setClientSession(data);
+  }
+
+  async function signUp(email, password, profile) {
+    const data = await window.LoginAjax.postRegister({
+      email,
+      password,
+      name: profile?.name,
+      username: profile?.username,
+    });
+
+    return setClientSession(data);
   }
 
   function signOut() {
     return getClient().auth.signOut();
+  }
+
+  function getProfile() {
+    return window.LoginAjax.getProfile();
+  }
+
+  function updateProfile(profile) {
+    return window.LoginAjax.putProfile(profile);
   }
 
   function onAuthStateChange(callback) {
@@ -64,6 +94,8 @@ const Auth = (() => {
     signIn,
     signUp,
     signOut,
+    getProfile,
+    updateProfile,
     onAuthStateChange,
   };
 })();

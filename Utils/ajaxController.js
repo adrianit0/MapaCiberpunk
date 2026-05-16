@@ -106,7 +106,16 @@ const AjaxController = (() => {
     }).then(async (response) => {
       if (!response.ok) {
         const errorBody = await response.text().catch(() => "");
-        const detail = errorBody ? ` - ${errorBody}` : "";
+        let detail = errorBody;
+
+        try {
+          const parsedError = errorBody ? JSON.parse(errorBody) : null;
+          detail = parsedError?.error || parsedError?.message || errorBody;
+        } catch (_error) {
+          detail = errorBody;
+        }
+
+        detail = detail ? ` - ${detail}` : "";
         throw new Error(`Error ${response.status}: ${response.statusText}${detail}`);
       }
 

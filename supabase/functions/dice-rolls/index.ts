@@ -94,7 +94,7 @@ Deno.serve(async (request) => {
       const id = url.searchParams.get("id");
       let query = supabase
         .from("dice_rolls")
-        .select("*, profiles!dice_rolls_user_id_profiles_fkey(username, avatar_url)")
+        .select("*, profiles!dice_rolls_user_id_profiles_fkey(name, username, avatar_url)")
         .order("rolled_at", { ascending: false });
 
       if (id) {
@@ -114,7 +114,7 @@ Deno.serve(async (request) => {
       const { data, error } = await supabase
         .from("dice_rolls")
         .insert(payload)
-        .select("*, profiles!dice_rolls_user_id_profiles_fkey(username, avatar_url)")
+        .select("*, profiles!dice_rolls_user_id_profiles_fkey(name, username, avatar_url)")
         .single();
 
       if (error) throw error;
@@ -133,7 +133,7 @@ Deno.serve(async (request) => {
         .from("dice_rolls")
         .update(payload)
         .eq("id", id)
-        .select("*, profiles!dice_rolls_user_id_profiles_fkey(username, avatar_url)")
+        .select("*, profiles!dice_rolls_user_id_profiles_fkey(name, username, avatar_url)")
         .single();
 
       if (error) throw error;

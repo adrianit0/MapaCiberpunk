@@ -195,7 +195,8 @@ h1 {
   background: rgba(0, 0, 0, 0.55);
 }
 
-.versions-dialog {
+.versions-dialog,
+.profile-dialog {
   width: min(520px, calc(100vw - 32px));
   max-height: min(720px, calc(100vh - 32px));
   padding: 0;
@@ -205,23 +206,49 @@ h1 {
   color: #fff;
 }
 
-.versions-panel {
+.profile-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.versions-panel,
+.profile-panel {
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: 18px;
 }
 
-.versions-header {
+.versions-header,
+.profile-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.versions-header h2 {
+.versions-header h2,
+.profile-header h2 {
   margin: 0;
   font-size: 1.1rem;
+}
+
+.profile-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.profile-panel input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font: inherit;
+  padding: 10px 12px;
 }
 
 .versions-list {
