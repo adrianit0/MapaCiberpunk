@@ -129,6 +129,7 @@ const App = (() => {
     window.MapPresenter?.clearData?.();
     window.TurnosLancerPresenter?.clearData?.();
     window.DadosPresenter?.clearData?.();
+    window.AdminPresenter?.clearData?.();
     window.Locations?.clearData?.();
     window.MenuPresenter?.clear?.();
     window.AppSession = null;

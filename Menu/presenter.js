@@ -6,10 +6,12 @@ const MenuPresenter = (() => {
     turnosLancerButton: "openTurnosLancerApp",
     dadosButton: "openDadosApp",
     miniRolCyberpunkButton: "openMiniRolCyberpunkApp",
+    adminButton: "openAdminApp",
     menuPage: "menuPage",
     mapPage: "mapPage",
     turnosLancerPage: "turnosLancerPage",
     dadosPage: "dadosPage",
+    adminPage: "adminPage",
   };
 
   const appIcons = {
@@ -27,6 +29,10 @@ const MenuPresenter = (() => {
     },
     [selectors.miniRolCyberpunkButton]: {
       src: "Resources/RoleIcon.png",
+      alt: "",
+    },
+    [selectors.adminButton]: {
+      src: "Resources/AdminIcon.png",
       alt: "",
     },
   };
@@ -70,6 +76,17 @@ const MenuPresenter = (() => {
         authenticated: true,
       },
     },
+    {
+      buttonId: selectors.adminButton,
+      pageId: selectors.adminPage,
+      tabLabel: "Admin",
+      open: openAdmin,
+      access: {
+        guest: false,
+        authenticated: true,
+        roles: ["admin"],
+      },
+    },
   ];
 
   const tabs = new Map();
@@ -77,6 +94,7 @@ const MenuPresenter = (() => {
   let mapLoaded = false;
   let turnosLancerLoaded = false;
   let dadosLoaded = false;
+  let adminLoaded = false;
 
   function getElement(id) {
     return document.getElementById(id);
@@ -133,6 +151,7 @@ const MenuPresenter = (() => {
     if (application.pageId === selectors.mapPage) mapLoaded = false;
     if (application.pageId === selectors.turnosLancerPage) turnosLancerLoaded = false;
     if (application.pageId === selectors.dadosPage) dadosLoaded = false;
+    if (application.pageId === selectors.adminPage) adminLoaded = false;
   }
 
   function applyApplicationAccess() {
@@ -257,6 +276,22 @@ const MenuPresenter = (() => {
     window.open("https://adrianit0.github.io/MiniRolCyberpunk/", "_blank", "noopener,noreferrer");
   }
 
+  async function openAdmin() {
+    const appContent = getElement(selectors.appContent);
+    if (!appContent) return;
+
+    loadStylesheet("Admin/styles.css");
+
+    if (!adminLoaded || !getElement(selectors.adminPage)) {
+      appContent.insertAdjacentHTML("beforeend", await fetchHtml("Admin/view.html"));
+      adminLoaded = true;
+    }
+
+    createTab(selectors.adminPage, "Admin");
+    showPage(selectors.adminPage);
+    await window.AdminPresenter?.init?.();
+  }
+
   function bindMenuEvents() {
     applications.forEach((application) => {
       getElement(application.buttonId)?.addEventListener("click", () => {
@@ -297,6 +332,7 @@ const MenuPresenter = (() => {
       mapLoaded = false;
       turnosLancerLoaded = false;
       dadosLoaded = false;
+      adminLoaded = false;
       createTab(selectors.menuPage, "Menu");
       addMenuAppIcons();
       bindMenuEvents();

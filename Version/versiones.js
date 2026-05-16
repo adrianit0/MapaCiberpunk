@@ -49,6 +49,15 @@ const Versiones = (() => {
         "Ahora, si estás logeado, se guardan las tiradas",
         "Incluido el minijuego de cyberpunk hecho hace tiempo"
       ]
+    },
+    {
+      version: "0.4.0",
+      fecha: new Date(2026, 4, 15, 6, 0, 0),
+      cambios:  [
+        "Nueva APP: Admin. Permite añadir o eliminar roles a los usuarios. Solo usable por el admin",
+        "Ajustes de seguridad de los usuarios",
+        "Ahora un usuario puede modificar sus datos pulsando 'Perfil'"
+      ]
     }
   ];
 

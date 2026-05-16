@@ -1,0 +1,27 @@
+<section id="adminPage" class="app-page admin-page" data-page="admin">
+    <div class="admin-shell">
+        <header class="admin-header">
+            <div>
+                <h2>Administracion</h2>
+                <p id="adminSummary">Usuarios y roles disponibles</p>
+            </div>
+            <button id="reloadAdminUsers" class="secondary-button" type="button">Recargar</button>
+        </header>
+
+        <p id="adminMessage" class="admin-message" role="status"></p>
+
+        <div class="admin-table-wrap">
+            <table class="admin-users-table">
+                <thead>
+                <tr>
+                    <th scope="col">Usuario</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Roles</th>
+                    <th scope="col">Anadir rol</th>
+                </tr>
+                </thead>
+                <tbody id="adminUsersTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</section>
