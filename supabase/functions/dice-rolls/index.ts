@@ -18,21 +18,31 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-function getSupabaseClient(request: Request) {
-  const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+function getRequiredEnv(name: string) {
+  const value = Deno.env.get(name);
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Supabase environment variables are not configured.");
+  if (!value) {
+    throw new Error(`${name} is not configured.`);
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: {
-        Authorization: request.headers.get("Authorization") ?? "",
+  return value;
+}
+
+function getSupabaseClients(request: Request) {
+  const supabaseUrl = getRequiredEnv("SUPABASE_URL");
+  const supabaseAnonKey = getRequiredEnv("SUPABASE_ANON_KEY");
+  const supabaseServiceRoleKey = getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
+
+  return {
+    auth: createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: request.headers.get("Authorization") ?? "",
+        },
       },
-    },
-  });
+    }),
+    admin: createClient(supabaseUrl, supabaseServiceRoleKey),
+  };
 }
 
 async function getAuthenticatedUser(supabase: ReturnType<typeof createClient>) {
@@ -54,6 +64,47 @@ function getIdFromRequest(request: Request, body: Record<string, unknown>) {
   const url = new URL(request.url);
   const id = url.searchParams.get("id") ?? body.id;
   return typeof id === "string" && id.trim() ? id.trim() : null;
+}
+
+function normalizeRoleName(roleName: unknown) {
+  return String(roleName ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function activeRoleFilter() {
+  return `date_end.is.null,date_end.gte.${new Date().toISOString().slice(0, 10)}`;
+}
+
+async function userCanDeleteDiceRolls(admin: ReturnType<typeof createClient>, userId: string) {
+  const { data: assignments, error: assignmentsError } = await admin
+    .from("profile_rol")
+    .select("rol_id, date_end")
+    .eq("user_id", userId)
+    .or(activeRoleFilter());
+
+  if (assignmentsError) {
+    throw assignmentsError;
+  }
+
+  const roleIds = [...new Set((assignments ?? []).map((assignment) => assignment.rol_id))];
+  if (roleIds.length === 0) {
+    return false;
+  }
+
+  const { data: roles, error: rolesError } = await admin
+    .from("rol")
+    .select("name")
+    .in("id", roleIds);
+
+  if (rolesError) {
+    throw rolesError;
+  }
+
+  return (roles ?? [])
+    .some((role) => ["admin", "master"].includes(normalizeRoleName(role.name)));
 }
 
 function normalizePayload(body: Record<string, unknown>, userId: string) {
@@ -82,7 +133,7 @@ Deno.serve(async (request) => {
   }
 
   try {
-    const supabase = getSupabaseClient(request);
+    const { auth: supabase, admin } = getSupabaseClients(request);
     const user = await getAuthenticatedUser(supabase);
 
     if (!user) {
@@ -99,6 +150,8 @@ Deno.serve(async (request) => {
 
       if (id) {
         query = query.eq("id", id);
+      } else {
+        query = query.limit(20);
       }
 
       const { data, error } = await query;
@@ -141,13 +194,18 @@ Deno.serve(async (request) => {
     }
 
     if (request.method === "DELETE") {
+      const canDelete = await userCanDeleteDiceRolls(admin, user.id);
+      if (!canDelete) {
+        return jsonResponse({ error: "Forbidden" }, 403);
+      }
+
       const id = getIdFromRequest(request, body);
 
       if (!id) {
         return jsonResponse({ error: "Missing dice roll id." }, 400);
       }
 
-      const { error } = await supabase
+      const { error } = await admin
         .from("dice_rolls")
         .delete()
         .eq("id", id);

@@ -36,7 +36,7 @@ insert into public.rol (name, description)
 values
   ('Usuario', 'Usuario estandar de la aplicacion.'),
   ('Admin', 'Administrador de la aplicacion.'),
-  ('Máster', 'Director o responsable de partida.')
+  ('Master', 'Director o responsable de partida.')
 on conflict (name) do update
 set description = excluded.description;
 
@@ -44,3 +44,19 @@ alter table public.profiles
   add column if not exists name varchar;
 
 comment on column public.profiles.name is 'Nombre visible del perfil.';
+
+drop policy if exists "Authenticated users can delete dice rolls" on public.dice_rolls;
+create policy "Authenticated users can delete dice rolls"
+on public.dice_rolls
+for delete
+to authenticated
+using (
+  exists (
+    select 1
+    from public.profile_rol pr
+    join public.rol r on r.id = pr.rol_id
+    where pr.user_id = auth.uid()
+      and (pr.date_end is null or pr.date_end >= current_date)
+      and lower(r.name) in ('admin', 'master')
+  )
+);

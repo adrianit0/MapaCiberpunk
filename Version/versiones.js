@@ -56,7 +56,9 @@ const Versiones = (() => {
       cambios:  [
         "Nueva APP: Admin. Permite añadir o eliminar roles a los usuarios. Solo usable por el admin",
         "Ajustes de seguridad de los usuarios",
-        "Ahora un usuario puede modificar sus datos pulsando 'Perfil'"
+        "Ahora un usuario puede modificar sus datos pulsando 'Perfil'",
+        "Posibilidad del Admin o master de eliminar el histórico de una tirada",
+        "Se limita el histórico de tiradas a las últimas 20"
       ]
     }
   ];

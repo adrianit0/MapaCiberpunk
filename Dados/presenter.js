@@ -72,6 +72,19 @@ const DadosPresenter = (() => {
     return user?.email || "Guest";
   }
 
+  function normalizeRoleName(roleName) {
+    return String(roleName ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase();
+  }
+
+  function userCanDeleteDiceRolls() {
+    return (window.AppSession?.profile?.roles ?? [])
+      .some((role) => ["admin", "master"].includes(normalizeRoleName(role?.name ?? role)));
+  }
+
   function unwrapList(response) {
     if (Array.isArray(response)) return response;
     return [];
@@ -189,6 +202,7 @@ const DadosPresenter = (() => {
   }
 
   function deleteHistoryEntry(entry) {
+    if (!userCanDeleteDiceRolls()) return;
     if (!entry.id || !window.DadosAjax?.deleteDiceRoll) return;
 
     window.DadosAjax.deleteDiceRoll({ id: entry.id })
@@ -530,7 +544,7 @@ const DadosPresenter = (() => {
       topLine.append(time, total);
       item.append(topLine, preset, formula, breakdown, user);
 
-      if (entry.id && isAuthenticatedMode()) {
+      if (entry.id && userCanDeleteDiceRolls()) {
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
         deleteButton.className = "secondary-button";
