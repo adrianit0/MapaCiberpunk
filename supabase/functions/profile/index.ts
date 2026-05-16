@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -48,6 +48,64 @@ function normalizeProfileValue(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+async function getProfileWithRoles(admin: ReturnType<typeof createClient>, userId: string) {
+  const { data: profile, error: profileError } = await admin
+    .from("profiles")
+    .select("id, name, username, avatar_url")
+    .eq("id", userId)
+    .single();
+
+  if (profileError) {
+    return { data: null, error: profileError };
+  }
+
+  const { data: assignedRoles, error: assignmentsError } = await admin
+    .from("profile_rol")
+    .select("rol_id, date_start, date_end")
+    .eq("user_id", userId)
+    .order("date_start", { ascending: false });
+
+  if (assignmentsError) {
+    return { data: null, error: assignmentsError };
+  }
+
+  const roleIds = [...new Set((assignedRoles ?? []).map((assignment) => assignment.rol_id))];
+  const { data: roles, error: rolesError } = roleIds.length
+    ? await admin
+      .from("rol")
+      .select("id, name, description")
+      .in("id", roleIds)
+    : { data: [], error: null };
+
+  if (rolesError) {
+    return { data: null, error: rolesError };
+  }
+
+  const rolesById = new Map((roles ?? []).map((role) => [role.id, role]));
+
+  return {
+    data: {
+      ...profile,
+      roles: (assignedRoles ?? [])
+        .map((assignment) => {
+          const role = rolesById.get(assignment.rol_id);
+
+          return role
+            ? {
+              id: role.id,
+              name: role.name,
+              description: role.description,
+              date_start: assignment.date_start,
+              date_end: assignment.date_end,
+            }
+            : null;
+        })
+        .filter(Boolean),
+    },
+    error: null,
+  };
+}
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
     return new Response(null, {
@@ -65,11 +123,7 @@ Deno.serve(async (request) => {
     }
 
     if (request.method === "GET") {
-      const { data, error } = await admin
-        .from("profiles")
-        .select("id, name, username, avatar_url")
-        .eq("id", userData.user.id)
-        .single();
+      const { data, error } = await getProfileWithRoles(admin, userData.user.id);
 
       if (error) {
         return jsonResponse({ error: error.message }, 400);
@@ -102,11 +156,18 @@ Deno.serve(async (request) => {
         return jsonResponse({ error: error.message }, 400);
       }
 
-      return jsonResponse(data);
+      const { data: profileWithRoles, error: profileWithRolesError } = await getProfileWithRoles(admin, data.id);
+
+      if (profileWithRolesError) {
+        return jsonResponse({ error: profileWithRolesError.message }, 400);
+      }
+
+      return jsonResponse(profileWithRoles);
     }
 
     return jsonResponse({ error: "Method not allowed" }, 405);
   } catch (error) {
+    console.error("profile function error", error);
     return jsonResponse({
       error: error instanceof Error ? error.message : "Unexpected error",
     }, 500);

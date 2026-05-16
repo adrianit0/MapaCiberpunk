@@ -11,8 +11,7 @@ const AjaxController = (() => {
 
   function getAuthHeaders() {
     const token = window.AppSession?.accessToken;
-    const bearerToken = token || getPublishableKey();
-    return bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {};
+    return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
   function ensureLoadingStyles() {

@@ -48,6 +48,29 @@ function normalizeProfileValue(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+async function assignDefaultUserRole(admin: ReturnType<typeof createClient>, userId: string) {
+  const { data: role, error: roleError } = await admin
+    .from("rol")
+    .select("id")
+    .eq("name", "Usuario")
+    .single();
+
+  if (roleError) {
+    return roleError;
+  }
+
+  const { error } = await admin
+    .from("profile_rol")
+    .upsert({
+      rol_id: role.id,
+      user_id: userId,
+      date_start: new Date().toISOString().slice(0, 10),
+      date_end: null,
+    });
+
+  return error;
+}
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
     return new Response(null, {
@@ -101,6 +124,12 @@ Deno.serve(async (request) => {
 
       if (profileError) {
         return jsonResponse({ error: profileError.message }, 400);
+      }
+
+      const defaultRoleError = await assignDefaultUserRole(admin, data.user.id);
+
+      if (defaultRoleError) {
+        return jsonResponse({ error: defaultRoleError.message }, 400);
       }
 
       return jsonResponse({
