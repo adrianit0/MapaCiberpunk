@@ -177,9 +177,11 @@ const App = (() => {
 
     if (isAuthenticated) {
       const profileButton = getElement(selectors.profileButton);
-      profileButton.disabled = Boolean(session?.isGuest);
+      const isGuest = Boolean(session?.isGuest);
+      profileButton.disabled = isGuest;
+      profileButton.classList.toggle("hidden", isGuest);
 
-      if (!session?.isGuest) {
+      if (!isGuest) {
         await loadProfile().catch((error) => {
           console.warn("No se pudo cargar el perfil.", error);
         });

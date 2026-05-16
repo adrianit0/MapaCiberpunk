@@ -31,6 +31,47 @@ const MenuPresenter = (() => {
     },
   };
 
+  const applications = [
+    {
+      buttonId: selectors.mapButton,
+      pageId: selectors.mapPage,
+      tabLabel: "Mapa",
+      open: openMap,
+      access: {
+        guest: true,
+        authenticated: true,
+      },
+    },
+    {
+      buttonId: selectors.turnosLancerButton,
+      pageId: selectors.turnosLancerPage,
+      tabLabel: "Turnos de Lancer",
+      open: openTurnosLancer,
+      access: {
+        guest: true,
+        authenticated: true,
+      },
+    },
+    {
+      buttonId: selectors.dadosButton,
+      pageId: selectors.dadosPage,
+      tabLabel: "Dados",
+      open: openDados,
+      access: {
+        guest: true,
+        authenticated: true,
+      },
+    },
+    {
+      buttonId: selectors.miniRolCyberpunkButton,
+      open: openMiniRolCyberpunk,
+      access: {
+        guest: true,
+        authenticated: true,
+      },
+    },
+  ];
+
   const tabs = new Map();
   let menuLoaded = false;
   let mapLoaded = false;
@@ -39,6 +80,70 @@ const MenuPresenter = (() => {
 
   function getElement(id) {
     return document.getElementById(id);
+  }
+
+  function normalizeRoleName(roleName) {
+    return String(roleName ?? "")
+        .trim()
+        .toLowerCase();
+  }
+
+  function getSessionRoleNames() {
+    return new Set((window.AppSession?.profile?.roles ?? [])
+      .map((role) => normalizeRoleName(role?.name ?? role))
+      .filter(Boolean));
+  }
+
+  function userHasAnyRole(requiredRoles = []) {
+    if (!requiredRoles.length) {
+      return true;
+    }
+
+    const sessionRoles = getSessionRoleNames();
+    return requiredRoles
+      .map(normalizeRoleName)
+      .some((role) => sessionRoles.has(role));
+  }
+
+  function canOpenApplication(application) {
+    const access = application.access ?? {};
+
+    if (window.AppSession?.isGuest) {
+      return access.guest !== false;
+    }
+
+    if (!window.AppSession) {
+      return false;
+    }
+
+    if (access.authenticated === false) {
+      return false;
+    }
+
+    return userHasAnyRole(access.roles);
+  }
+
+  function closeApplication(application) {
+    if (application.pageId) {
+      getElement(application.pageId)?.remove();
+      tabs.get(application.pageId)?.remove();
+      tabs.delete(application.pageId);
+    }
+
+    if (application.pageId === selectors.mapPage) mapLoaded = false;
+    if (application.pageId === selectors.turnosLancerPage) turnosLancerLoaded = false;
+    if (application.pageId === selectors.dadosPage) dadosLoaded = false;
+  }
+
+  function applyApplicationAccess() {
+    applications.forEach((application) => {
+      const isAllowed = canOpenApplication(application);
+      getElement(application.buttonId)?.classList.toggle("hidden", !isAllowed);
+
+      if (!isAllowed) {
+        closeApplication(application);
+      }
+    });
   }
 
   function loadStylesheet(href) {
@@ -153,10 +258,13 @@ const MenuPresenter = (() => {
   }
 
   function bindMenuEvents() {
-    getElement(selectors.mapButton)?.addEventListener("click", openMap);
-    getElement(selectors.turnosLancerButton)?.addEventListener("click", openTurnosLancer);
-    getElement(selectors.dadosButton)?.addEventListener("click", openDados);
-    getElement(selectors.miniRolCyberpunkButton)?.addEventListener("click", openMiniRolCyberpunk);
+    applications.forEach((application) => {
+      getElement(application.buttonId)?.addEventListener("click", () => {
+        if (canOpenApplication(application)) {
+          application.open();
+        }
+      });
+    });
   }
 
   function addMenuAppIcons() {
@@ -194,6 +302,7 @@ const MenuPresenter = (() => {
       bindMenuEvents();
     }
 
+    applyApplicationAccess();
     showPage(selectors.menuPage);
   }
 
