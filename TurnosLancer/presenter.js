@@ -10,7 +10,6 @@ const TurnosLancerPresenter = (() => {
     alliesList: "turnosAlliesList",
     enemiesList: "turnosEnemiesList",
     sequenceList: "turnosSequenceList",
-    status: "turnosStatus",
     dialog: "turnoCardDialog",
     form: "turnoCardForm",
     nameInput: "turnoCardName",
@@ -30,6 +29,7 @@ const TurnosLancerPresenter = (() => {
     editingCardId: null,
     openMenuCardId: null,
     documentClickBound: false,
+    storageLoaded: false,
   };
 
   function getElement(id) {
@@ -51,16 +51,33 @@ const TurnosLancerPresenter = (() => {
     state.rounds[state.currentRoundIndex] = sequence;
   }
 
+  function loadPersistentState() {
+    if (state.storageLoaded) return;
+
+    const savedState = window.TurnosLancerPersistence?.load?.();
+    if (savedState) {
+      state.cards = savedState.cards;
+      state.rounds = savedState.rounds;
+      state.currentRoundIndex = savedState.currentRoundIndex;
+    }
+
+    state.storageLoaded = true;
+  }
+
+  function savePersistentState() {
+    window.TurnosLancerPersistence?.save?.({
+      cards: state.cards,
+      rounds: state.rounds,
+      currentRoundIndex: state.currentRoundIndex,
+    });
+  }
+
   function getLatestRoundIndex() {
     return Math.max(state.rounds.length - 1, 0);
   }
 
   function isViewingLatestRound() {
     return state.currentRoundIndex === getLatestRoundIndex();
-  }
-
-  function getAllCardIds() {
-    return state.cards.map((card) => card.id);
   }
 
   function createCardElement(card, zone, options = {}) {
@@ -239,25 +256,8 @@ const TurnosLancerPresenter = (() => {
     }
 
     if (advanceButton) {
-      advanceButton.disabled = !isLatestRound || state.cards.length === 0;
+      advanceButton.disabled = !isLatestRound || getCurrentSequence().length === 0;
     }
-  }
-
-  function updateStatus() {
-    const status = getElement(selectors.status);
-    if (!status) return;
-
-    const sequence = getCurrentSequence();
-    if (sequence.length === 0) {
-      status.textContent = isViewingLatestRound()
-        ? "Arrastra una tarjeta aqui para iniciar la ronda."
-        : "Ronda anterior vacia de solo lectura.";
-      return;
-    }
-
-    status.textContent = isViewingLatestRound()
-      ? "Ronda editable."
-      : "Ronda anterior de solo lectura.";
   }
 
   function render() {
@@ -266,7 +266,6 @@ const TurnosLancerPresenter = (() => {
     renderRoster();
     renderSequence();
     renderRoundControls();
-    updateStatus();
   }
 
   function openDialog() {
@@ -329,6 +328,7 @@ const TurnosLancerPresenter = (() => {
         card.type = form.elements.type.value;
       }
       closeDialog();
+      savePersistentState();
       render();
       return;
     }
@@ -347,11 +347,13 @@ const TurnosLancerPresenter = (() => {
       form.elements.name.value = "";
       form.elements.type.value = selectedType;
       getElement(selectors.nameInput)?.focus();
+      savePersistentState();
       render();
       return;
     }
 
     closeDialog();
+    savePersistentState();
     render();
   }
 
@@ -384,6 +386,7 @@ const TurnosLancerPresenter = (() => {
     };
 
     state.cards.splice(cardIndex + 1, 0, clonedCard);
+    savePersistentState();
     render();
   }
 
@@ -394,6 +397,7 @@ const TurnosLancerPresenter = (() => {
 
     state.cards = state.cards.filter((item) => item.id !== cardId);
     state.rounds = state.rounds.map((round) => round.filter((id) => id !== cardId));
+    savePersistentState();
     render();
   }
 
@@ -401,6 +405,7 @@ const TurnosLancerPresenter = (() => {
     const card = getCard(cardId);
     if (!card || card.isDead) return;
     card.isDead = true;
+    savePersistentState();
     render();
   }
 
@@ -408,6 +413,7 @@ const TurnosLancerPresenter = (() => {
     const card = getCard(cardId);
     if (!card || !card.isDead) return;
     card.isDead = false;
+    savePersistentState();
     render();
   }
 
@@ -424,6 +430,7 @@ const TurnosLancerPresenter = (() => {
     cancelTouchDrag();
     clearDropTargets();
     closeDialog();
+    savePersistentState();
     render();
   }
 
@@ -538,6 +545,7 @@ const TurnosLancerPresenter = (() => {
     state.draggedCardId = null;
     resetTouchDragElement(touchDrag);
     clearDropTargets();
+    savePersistentState();
     render();
     event.preventDefault();
   }
@@ -579,6 +587,7 @@ const TurnosLancerPresenter = (() => {
       }
 
       clearDropTargets();
+      savePersistentState();
       render();
     });
   }
@@ -594,11 +603,12 @@ const TurnosLancerPresenter = (() => {
     });
 
     getElement(selectors.advanceButton)?.addEventListener("click", () => {
-      if (!isViewingLatestRound() || state.cards.length === 0) return;
-      state.rounds.push(getAllCardIds());
+      if (!isViewingLatestRound() || getCurrentSequence().length === 0) return;
+      state.rounds.push([]);
       state.currentRoundIndex = getLatestRoundIndex();
       state.openMenuCardId = null;
       cancelTouchDrag();
+      savePersistentState();
       render();
     });
 
@@ -609,6 +619,7 @@ const TurnosLancerPresenter = (() => {
       state.currentRoundIndex -= 1;
       state.openMenuCardId = null;
       cancelTouchDrag();
+      savePersistentState();
       render();
     });
 
@@ -617,6 +628,7 @@ const TurnosLancerPresenter = (() => {
       state.currentRoundIndex += 1;
       state.openMenuCardId = null;
       cancelTouchDrag();
+      savePersistentState();
       render();
     });
 
@@ -638,6 +650,8 @@ const TurnosLancerPresenter = (() => {
     const page = getElement(selectors.page);
     if (!page) return;
 
+    loadPersistentState();
+
     if (state.boundPage !== page) {
       bindEvents();
       state.boundPage = page;
@@ -656,6 +670,7 @@ const TurnosLancerPresenter = (() => {
       state.draggedCardId = null;
       state.editingCardId = null;
       state.openMenuCardId = null;
+      state.storageLoaded = false;
       clearDropTargets();
       closeDialog();
       render();
