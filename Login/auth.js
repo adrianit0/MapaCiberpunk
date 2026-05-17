@@ -82,8 +82,8 @@ const Auth = (() => {
   }
 
   function onAuthStateChange(callback) {
-    return getClient().auth.onAuthStateChange((_event, session) => {
-      callback(session);
+    return getClient().auth.onAuthStateChange((event, session) => {
+      callback(session, event);
     });
   }
 

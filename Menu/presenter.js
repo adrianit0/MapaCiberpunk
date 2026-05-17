@@ -319,10 +319,11 @@ const MenuPresenter = (() => {
     });
   }
 
-  async function init() {
+  async function init(options = {}) {
     const appContent = getElement(selectors.appContent);
     const appHeaderTabs = getElement(selectors.appHeaderTabs);
     if (!appContent || !appHeaderTabs) return;
+    const activePageId = appContent.querySelector(".app-page:not(.hidden)")?.id;
 
     if (!menuLoaded || !getElement(selectors.menuPage)) {
       appContent.innerHTML = await fetchHtml("Menu/view.html");
@@ -339,7 +340,10 @@ const MenuPresenter = (() => {
     }
 
     applyApplicationAccess();
-    showPage(selectors.menuPage);
+    const pageToShow = options.preserveActivePage && getElement(activePageId)
+      ? activePageId
+      : selectors.menuPage;
+    showPage(pageToShow);
   }
 
   function clear() {

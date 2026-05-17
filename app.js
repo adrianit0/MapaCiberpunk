@@ -89,14 +89,14 @@ const App = (() => {
     });
   }
 
-  async function loadMenuApplication() {
+  async function loadMenuApplication(options = {}) {
     if (!state.menuAssetsLoaded) {
       loadStylesheet("Menu/styles.css");
       await loadScript("Menu/presenter.js");
       state.menuAssetsLoaded = true;
     }
 
-    await window.MenuPresenter?.init?.();
+    await window.MenuPresenter?.init?.(options);
   }
 
   function setMode(mode) {
@@ -155,10 +155,11 @@ const App = (() => {
     getElement(selectors.profileAvatarUrl).value = profile.avatar_url ?? "";
   }
 
-  async function setViews(session) {
+  async function setViews(session, options = {}) {
     const isAuthenticated = Boolean(session);
     const authView = getElement(selectors.authView);
     const appView = getElement(selectors.appView);
+    const hadApplicationSession = Boolean(window.AppSession);
 
     if (isAuthenticated) {
       window.AppSession = {
@@ -182,13 +183,15 @@ const App = (() => {
       profileButton.disabled = isGuest;
       profileButton.classList.toggle("hidden", isGuest);
 
-      if (!isGuest) {
+      if (!isGuest && !options.preserveApplicationState) {
         await loadProfile().catch((error) => {
           console.warn("No se pudo cargar el perfil.", error);
         });
       }
 
-      await loadMenuApplication();
+      await loadMenuApplication({
+        preserveActivePage: Boolean(options.preserveApplicationState && hadApplicationSession),
+      });
     }
   }
 
@@ -319,8 +322,10 @@ const App = (() => {
       .then(() => window.Auth.getSession())
       .then(setViews)
       .then(() => {
-        state.authSubscription = window.Auth.onAuthStateChange((session) => {
-          setViews(session).catch((error) => {
+        state.authSubscription = window.Auth.onAuthStateChange((session, event) => {
+          setViews(session, {
+            preserveApplicationState: event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED",
+          }).catch((error) => {
             setMessage(error.message || "No se pudo cargar la aplicación.", "error");
           });
         });
