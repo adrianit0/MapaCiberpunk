@@ -67,7 +67,7 @@ const Versiones = (() => {
       cambios:  [
         "Corregido error que volvía al menu principal cuando volvías a la aplicación",
         "Se ha mejorado la aplicación de Turnos Lancer",
-        "Se ha incluido persistencia local en Turnos Lancer, si cambias de navegador o se limpia se pierde la info"
+        "Se ha incluido persistencia local en Turnos Lancer, si cambias de navegador o se limpia caché se pierde la info"
       ]
     }
   ];

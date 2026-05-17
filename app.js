@@ -159,14 +159,19 @@ const App = (() => {
     const isAuthenticated = Boolean(session);
     const authView = getElement(selectors.authView);
     const appView = getElement(selectors.appView);
-    const hadApplicationSession = Boolean(window.AppSession);
+    const previousSession = window.AppSession;
+    const hadApplicationSession = Boolean(previousSession);
 
     if (isAuthenticated) {
+      const previousProfile = previousSession?.user?.id === session?.user?.id
+        ? previousSession.profile
+        : null;
+
       window.AppSession = {
         accessToken: session?.access_token ?? null,
         user: session?.user ?? null,
         isGuest: Boolean(session?.isGuest),
-        profile: null,
+        profile: previousProfile,
       };
     } else {
       clearApplicationData();
@@ -183,7 +188,7 @@ const App = (() => {
       profileButton.disabled = isGuest;
       profileButton.classList.toggle("hidden", isGuest);
 
-      if (!isGuest && !options.preserveApplicationState) {
+      if (!isGuest && (!options.preserveApplicationState || !window.AppSession.profile)) {
         await loadProfile().catch((error) => {
           console.warn("No se pudo cargar el perfil.", error);
         });
@@ -253,8 +258,16 @@ const App = (() => {
       }
 
       setProfileMessage("");
-      fillProfileForm();
-      getElement(selectors.profileDialog).showModal();
+      Promise.resolve()
+        .then(() => window.AppSession?.profile ? window.AppSession.profile : loadProfile())
+        .then((profile) => {
+          fillProfileForm(profile);
+          getElement(selectors.profileDialog).showModal();
+        })
+        .catch((error) => {
+          setProfileMessage(error.message || "No se pudo cargar el perfil.", "error");
+          getElement(selectors.profileDialog).showModal();
+        });
     });
 
     getElement(selectors.closeProfileDialog).addEventListener("click", () => {
