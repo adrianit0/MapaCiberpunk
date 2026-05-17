@@ -89,18 +89,23 @@ const AjaxController = (() => {
   }
 
   function ajaxRequest(url, options = {}) {
+    const { showLoading: showLoadingOption, ...fetchOptions } = options;
     const publishableKey = getPublishableKey();
     const headers = {
       "Content-Type": "application/json",
       ...(publishableKey ? { apikey: publishableKey } : {}),
       ...getAuthHeaders(),
-      ...options.headers,
+      ...fetchOptions.headers,
     };
 
-    showLoading();
+    const shouldShowLoading = showLoadingOption !== false;
+
+    if (shouldShowLoading) {
+      showLoading();
+    }
 
     return fetch(url, {
-      ...options,
+      ...fetchOptions,
       headers,
     }).then(async (response) => {
       if (!response.ok) {
@@ -124,7 +129,9 @@ const AjaxController = (() => {
 
       return response.json();
     }).finally(() => {
-      hideLoading();
+      if (shouldShowLoading) {
+        hideLoading();
+      }
     });
   }
 

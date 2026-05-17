@@ -16,6 +16,7 @@ function postDiceRoll(roll) {
   return dadosAjaxRequest(DICE_ROLLS_URL, {
     method: "POST",
     body: JSON.stringify(roll),
+    showLoading: false,
   });
 }
 

@@ -26,7 +26,9 @@ const DadosPresenter = (() => {
       dice: [
         { id: "d20", sides: 20, label: "Dado de 20", defaultCount: 1, max: 1 },
         { id: "accuracy", sides: 6, label: "Dado de 6 (Accuracy)", formulaLabel: "d6 Accuracy", highestOnly: true, modifier: 1 },
-        { id: "difficulty", sides: 6, label: "Dado de 6 (Desventaja)", formulaLabel: "d6 Desventaja", highestOnly: true, modifier: -1 },
+        { id: "difficulty", sides: 6, label: "Dado de 6 (Difficulty)", formulaLabel: "d6 Difficulty", highestOnly: true, modifier: -1 },
+        { id: "d3", sides: 3, label: "Dado de 3 (Plano)" },
+        { id: "d6", sides: 6, label: "Dado de 6 (Plano)" },
       ],
       rollMode: "lancer",
     },
@@ -180,8 +182,12 @@ const DadosPresenter = (() => {
 
   function saveRoll(entry) {
     if (!isAuthenticatedMode() || !window.DadosAjax?.postDiceRoll) {
+      entry.isSaving = false;
       return Promise.resolve(entry);
     }
+
+    entry.isSaving = true;
+    renderHistory();
 
     return window.DadosAjax.postDiceRoll(toServerRollPayload(entry))
       .then((response) => {
@@ -197,6 +203,8 @@ const DadosPresenter = (() => {
       })
       .catch((error) => {
         console.error("No se pudo guardar la tirada de dados.", error);
+        entry.isSaving = false;
+        renderHistory();
         return entry;
       });
   }
@@ -544,12 +552,17 @@ const DadosPresenter = (() => {
       topLine.append(time, total);
       item.append(topLine, preset, formula, breakdown, user);
 
-      if (entry.id && userCanDeleteDiceRolls()) {
+      if (userCanDeleteDiceRolls()) {
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
         deleteButton.className = "secondary-button";
         deleteButton.textContent = "Eliminar";
         deleteButton.setAttribute("aria-label", `Eliminar tirada ${entry.formula}`);
+        deleteButton.disabled = !entry.id || entry.isSaving;
+        deleteButton.setAttribute("aria-busy", String(Boolean(entry.isSaving)));
+        if (!entry.id || entry.isSaving) {
+          deleteButton.title = "La tirada se podra eliminar cuando se haya guardado.";
+        }
         deleteButton.addEventListener("click", () => deleteHistoryEntry(entry));
         item.appendChild(deleteButton);
       }
@@ -632,6 +645,7 @@ const DadosPresenter = (() => {
         user: isAuthenticatedMode() ? getCurrentUserLabel() : "Guest",
         userId: window.AppSession?.user?.id,
         rolledAt,
+        isSaving: isAuthenticatedMode(),
       };
 
       state.history.unshift(historyEntry);
