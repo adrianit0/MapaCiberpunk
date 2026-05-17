@@ -3,14 +3,19 @@ const TurnosLancerPresenter = (() => {
     page: "turnosLancerPage",
     addButton: "addTurnoCard",
     advanceButton: "advanceTurno",
-    clearButton: "clearTurnos",
-    rosterList: "turnosRosterList",
+    newCombatButton: "newCombat",
+    previousRoundButton: "previousRound",
+    nextRoundButton: "nextRound",
+    currentRound: "currentRound",
+    alliesList: "turnosAlliesList",
+    enemiesList: "turnosEnemiesList",
     sequenceList: "turnosSequenceList",
     status: "turnosStatus",
     dialog: "turnoCardDialog",
     form: "turnoCardForm",
     nameInput: "turnoCardName",
     saveButton: "saveTurnoCard",
+    createAnotherOption: "createAnotherCardOption",
     closeDialog: "closeTurnoCardDialog",
     cancelDialog: "cancelTurnoCardDialog",
   };
@@ -18,8 +23,8 @@ const TurnosLancerPresenter = (() => {
   const state = {
     boundPage: null,
     cards: [],
-    sequence: [],
-    activeIndex: 0,
+    rounds: [[]],
+    currentRoundIndex: 0,
     draggedCardId: null,
     touchDrag: null,
     editingCardId: null,
@@ -35,10 +40,34 @@ const TurnosLancerPresenter = (() => {
     return state.cards.find((card) => card.id === cardId);
   }
 
-  function createCardElement(card, zone) {
+  function getCurrentSequence() {
+    if (!state.rounds[state.currentRoundIndex]) {
+      state.rounds[state.currentRoundIndex] = [];
+    }
+    return state.rounds[state.currentRoundIndex];
+  }
+
+  function setCurrentSequence(sequence) {
+    state.rounds[state.currentRoundIndex] = sequence;
+  }
+
+  function getLatestRoundIndex() {
+    return Math.max(state.rounds.length - 1, 0);
+  }
+
+  function isViewingLatestRound() {
+    return state.currentRoundIndex === getLatestRoundIndex();
+  }
+
+  function getAllCardIds() {
+    return state.cards.map((card) => card.id);
+  }
+
+  function createCardElement(card, zone, options = {}) {
+    const isReadOnly = Boolean(options.readOnly);
     const cardElement = document.createElement("div");
     cardElement.className = `turno-card turno-card-${card.type}`;
-    cardElement.draggable = true;
+    cardElement.draggable = !isReadOnly;
     cardElement.dataset.cardId = card.id;
     cardElement.dataset.zone = zone;
     cardElement.setAttribute("role", "group");
@@ -48,89 +77,96 @@ const TurnosLancerPresenter = (() => {
     name.className = "turno-card-name";
     name.textContent = `${card.isDead ? "\u2620 " : ""}${card.name}`;
 
-    if (zone === "roster" && state.sequence.includes(card.id)) {
+    if (zone === "roster" && getCurrentSequence().includes(card.id)) {
       cardElement.classList.add("turno-card-muted");
     }
 
-    const actions = document.createElement("div");
-    actions.className = "turno-card-actions";
+    cardElement.append(name);
 
-    const menuButton = document.createElement("button");
-    menuButton.type = "button";
-    menuButton.className = "turno-card-menu-button";
-    menuButton.setAttribute("aria-label", `Opciones de ${card.name}`);
-    menuButton.setAttribute("aria-expanded", String(state.openMenuCardId === card.id));
-    menuButton.textContent = "...";
-    menuButton.addEventListener("pointerdown", (event) => {
-      event.stopPropagation();
-    });
+    if (!isReadOnly) {
+      const actions = document.createElement("div");
+      actions.className = "turno-card-actions";
 
-    const menu = document.createElement("div");
-    menu.className = "turno-card-menu";
-    menu.classList.toggle("hidden", state.openMenuCardId !== card.id);
+      const menuButton = document.createElement("button");
+      menuButton.type = "button";
+      menuButton.className = "turno-card-menu-button";
+      menuButton.setAttribute("aria-label", `Opciones de ${card.name}`);
+      menuButton.setAttribute("aria-expanded", String(state.openMenuCardId === card.id));
+      menuButton.textContent = "...";
+      menuButton.addEventListener("pointerdown", (event) => {
+        event.stopPropagation();
+      });
 
-    menu.append(
-      createMenuAction("Editar", () => openEditDialog(card.id)),
-      createMenuAction("Eliminar", () => deleteCard(card.id))
-    );
+      const menu = document.createElement("div");
+      menu.className = "turno-card-menu";
+      menu.classList.toggle("hidden", state.openMenuCardId !== card.id);
 
-    if (!card.isDead) {
-      menu.append(createMenuAction("Matar", () => killCard(card.id)));
+      menu.append(
+        createMenuAction("Editar", () => openEditDialog(card.id)),
+        createMenuAction("Clonar", () => cloneCard(card.id)),
+        createMenuAction("Eliminar", () => deleteCard(card.id))
+      );
+
+      if (!card.isDead) {
+        menu.append(createMenuAction("Matar", () => killCard(card.id)));
+      } else {
+        menu.append(createMenuAction("Revivir", () => reviveCard(card.id)));
+      }
+
+      menuButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        state.openMenuCardId = state.openMenuCardId === card.id ? null : card.id;
+        render();
+      });
+
+      actions.append(menuButton, menu);
+      cardElement.append(actions);
+
+      cardElement.addEventListener("dragstart", (event) => {
+        state.draggedCardId = card.id;
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", card.id);
+        state.openMenuCardId = null;
+        cardElement.classList.add("dragging");
+      });
+
+      cardElement.addEventListener("dragend", () => {
+        state.draggedCardId = null;
+        cardElement.classList.remove("dragging");
+        clearDropTargets();
+      });
+
+      cardElement.addEventListener("pointerdown", (event) => {
+        if (event.pointerType === "mouse" || event.button !== 0) return;
+        if (event.target.closest("button, .turno-card-menu")) return;
+
+        state.touchDrag = {
+          cardId: card.id,
+          element: cardElement,
+          startX: event.clientX,
+          startY: event.clientY,
+          currentX: event.clientX,
+          currentY: event.clientY,
+          isDragging: false,
+        };
+        state.openMenuCardId = null;
+        cardElement.setPointerCapture?.(event.pointerId);
+      });
+
+      cardElement.addEventListener("pointermove", (event) => {
+        updateTouchDrag(event);
+      });
+
+      cardElement.addEventListener("pointerup", (event) => {
+        finishTouchDrag(event);
+      });
+
+      cardElement.addEventListener("pointercancel", () => {
+        cancelTouchDrag();
+      });
     } else {
-      menu.append(createMenuAction("Revivir", () => reviveCard(card.id)));
+      cardElement.classList.add("turno-card-readonly");
     }
-
-    menuButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-      state.openMenuCardId = state.openMenuCardId === card.id ? null : card.id;
-      render();
-    });
-
-    actions.append(menuButton, menu);
-    cardElement.append(name, actions);
-
-    cardElement.addEventListener("dragstart", (event) => {
-      state.draggedCardId = card.id;
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("text/plain", card.id);
-      state.openMenuCardId = null;
-      cardElement.classList.add("dragging");
-    });
-
-    cardElement.addEventListener("dragend", () => {
-      state.draggedCardId = null;
-      cardElement.classList.remove("dragging");
-      clearDropTargets();
-    });
-
-    cardElement.addEventListener("pointerdown", (event) => {
-      if (event.pointerType === "mouse" || event.button !== 0) return;
-      if (event.target.closest("button, .turno-card-menu")) return;
-
-      state.touchDrag = {
-        cardId: card.id,
-        element: cardElement,
-        startX: event.clientX,
-        startY: event.clientY,
-        currentX: event.clientX,
-        currentY: event.clientY,
-        isDragging: false,
-      };
-      state.openMenuCardId = null;
-      cardElement.setPointerCapture?.(event.pointerId);
-    });
-
-    cardElement.addEventListener("pointermove", (event) => {
-      updateTouchDrag(event);
-    });
-
-    cardElement.addEventListener("pointerup", (event) => {
-      finishTouchDrag(event);
-    });
-
-    cardElement.addEventListener("pointercancel", () => {
-      cancelTouchDrag();
-    });
 
     return cardElement;
   }
@@ -149,12 +185,16 @@ const TurnosLancerPresenter = (() => {
   }
 
   function renderRoster() {
-    const rosterList = getElement(selectors.rosterList);
-    if (!rosterList) return;
+    const alliesList = getElement(selectors.alliesList);
+    const enemiesList = getElement(selectors.enemiesList);
+    if (!alliesList || !enemiesList) return;
 
-    rosterList.innerHTML = "";
+    const isReadOnly = !isViewingLatestRound();
+    alliesList.innerHTML = "";
+    enemiesList.innerHTML = "";
     state.cards.forEach((card) => {
-      rosterList.appendChild(createCardElement(card, "roster"));
+      const list = card.type === "ally" ? alliesList : enemiesList;
+      list.appendChild(createCardElement(card, "roster", { readOnly: isReadOnly }));
     });
   }
 
@@ -162,37 +202,70 @@ const TurnosLancerPresenter = (() => {
     const sequenceList = getElement(selectors.sequenceList);
     if (!sequenceList) return;
 
+    const isReadOnly = !isViewingLatestRound();
     sequenceList.innerHTML = "";
-    state.sequence.forEach((cardId, index) => {
+    sequenceList.classList.toggle("turnos-readonly-zone", isReadOnly);
+    getCurrentSequence().forEach((cardId) => {
       const card = getCard(cardId);
       if (!card) return;
 
-      const cardElement = createCardElement(card, "sequence");
-      cardElement.classList.toggle("active-turn", index === state.activeIndex);
+      const cardElement = createCardElement(card, "sequence", { readOnly: isReadOnly });
       sequenceList.appendChild(cardElement);
     });
+  }
+
+  function renderRoundControls() {
+    const currentRound = getElement(selectors.currentRound);
+    const previousButton = getElement(selectors.previousRoundButton);
+    const nextButton = getElement(selectors.nextRoundButton);
+    const addButton = getElement(selectors.addButton);
+    const advanceButton = getElement(selectors.advanceButton);
+    const isLatestRound = isViewingLatestRound();
+
+    if (currentRound) {
+      currentRound.textContent = String(state.currentRoundIndex + 1);
+    }
+
+    if (previousButton) {
+      previousButton.disabled = state.currentRoundIndex === 0;
+    }
+
+    if (nextButton) {
+      nextButton.disabled = state.currentRoundIndex >= getLatestRoundIndex();
+    }
+
+    if (addButton) {
+      addButton.disabled = !isLatestRound;
+    }
+
+    if (advanceButton) {
+      advanceButton.disabled = !isLatestRound || state.cards.length === 0;
+    }
   }
 
   function updateStatus() {
     const status = getElement(selectors.status);
     if (!status) return;
 
-    if (state.sequence.length === 0) {
-      status.textContent = "Arrastra una tarjeta aqui para iniciar la ronda.";
+    const sequence = getCurrentSequence();
+    if (sequence.length === 0) {
+      status.textContent = isViewingLatestRound()
+        ? "Arrastra una tarjeta aqui para iniciar la ronda."
+        : "Ronda anterior vacia de solo lectura.";
       return;
     }
 
-    const activeCard = getCard(state.sequence[state.activeIndex]);
-    status.textContent = activeCard
-      ? `Turno actual: ${activeCard.name} (${activeCard.type === "ally" ? "Aliado" : "Enemigo"})`
-      : "Selecciona el siguiente turno.";
+    status.textContent = isViewingLatestRound()
+      ? "Ronda editable."
+      : "Ronda anterior de solo lectura.";
   }
 
   function render() {
     if (!getElement(selectors.page)) return;
-    state.activeIndex = Math.min(state.activeIndex, Math.max(state.sequence.length - 1, 0));
+    state.currentRoundIndex = Math.min(state.currentRoundIndex, getLatestRoundIndex());
     renderRoster();
     renderSequence();
+    renderRoundControls();
     updateStatus();
   }
 
@@ -200,11 +273,13 @@ const TurnosLancerPresenter = (() => {
     const dialog = getElement(selectors.dialog);
     const form = getElement(selectors.form);
     const nameInput = getElement(selectors.nameInput);
+    const createAnotherOption = getElement(selectors.createAnotherOption);
     if (!dialog || !form || !nameInput) return;
 
     state.editingCardId = null;
     form.reset();
     form.elements.type.value = "ally";
+    createAnotherOption?.classList.remove("hidden");
     getElement("turnoCardDialogTitle").textContent = "Nueva tarjeta";
     getElement(selectors.saveButton).textContent = "Crear";
     dialog.showModal();
@@ -216,12 +291,15 @@ const TurnosLancerPresenter = (() => {
     const dialog = getElement(selectors.dialog);
     const form = getElement(selectors.form);
     const nameInput = getElement(selectors.nameInput);
+    const createAnotherOption = getElement(selectors.createAnotherOption);
     if (!card || !dialog || !form || !nameInput) return;
 
     state.editingCardId = cardId;
     form.reset();
     form.elements.name.value = card.name;
     form.elements.type.value = card.type;
+    form.elements.createAnother.checked = false;
+    createAnotherOption?.classList.add("hidden");
     getElement("turnoCardDialogTitle").textContent = "Editar tarjeta";
     getElement(selectors.saveButton).textContent = "Guardar";
     dialog.showModal();
@@ -231,8 +309,10 @@ const TurnosLancerPresenter = (() => {
   function closeDialog() {
     const dialog = getElement(selectors.dialog);
     const form = getElement(selectors.form);
+    const createAnotherOption = getElement(selectors.createAnotherOption);
     state.editingCardId = null;
     form?.reset();
+    createAnotherOption?.classList.remove("hidden");
     if (dialog?.open) {
       dialog.close();
     }
@@ -253,14 +333,57 @@ const TurnosLancerPresenter = (() => {
       return;
     }
 
+    const selectedType = form.elements.type.value;
+    const shouldCreateAnother = Boolean(form.elements.createAnother?.checked);
+
     state.cards.push({
       id: crypto.randomUUID(),
       name,
-      type: form.elements.type.value,
+      type: selectedType,
       isDead: false,
     });
 
+    if (shouldCreateAnother) {
+      form.elements.name.value = "";
+      form.elements.type.value = selectedType;
+      getElement(selectors.nameInput)?.focus();
+      render();
+      return;
+    }
+
     closeDialog();
+    render();
+  }
+
+  function getCloneBaseName(name) {
+    return name.replace(/\s\(\d+\)$/, "");
+  }
+
+  function getCloneName(name) {
+    const baseName = getCloneBaseName(name);
+    const escapedBaseName = baseName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const clonePattern = new RegExp(`^${escapedBaseName} \\((\\d+)\\)$`);
+    const usedIndexes = state.cards
+      .map((card) => card.name.match(clonePattern))
+      .filter(Boolean)
+      .map((match) => Number(match[1]));
+
+    const nextIndex = usedIndexes.length > 0 ? Math.max(...usedIndexes) + 1 : 1;
+    return `${baseName} (${nextIndex})`;
+  }
+
+  function cloneCard(cardId) {
+    const card = getCard(cardId);
+    if (!card) return;
+
+    const cardIndex = state.cards.findIndex((item) => item.id === cardId);
+    const clonedCard = {
+      ...card,
+      id: crypto.randomUUID(),
+      name: getCloneName(card.name),
+    };
+
+    state.cards.splice(cardIndex + 1, 0, clonedCard);
     render();
   }
 
@@ -270,8 +393,7 @@ const TurnosLancerPresenter = (() => {
     if (!confirm(`Eliminar "${card.name}"?`)) return;
 
     state.cards = state.cards.filter((item) => item.id !== cardId);
-    state.sequence = state.sequence.filter((id) => id !== cardId);
-    state.activeIndex = Math.min(state.activeIndex, Math.max(state.sequence.length - 1, 0));
+    state.rounds = state.rounds.map((round) => round.filter((id) => id !== cardId));
     render();
   }
 
@@ -286,6 +408,22 @@ const TurnosLancerPresenter = (() => {
     const card = getCard(cardId);
     if (!card || !card.isDead) return;
     card.isDead = false;
+    render();
+  }
+
+  function resetCombat() {
+    if (!confirm("Iniciar un nuevo combate? Se eliminaran las rondas actuales, pero se conservaran los participantes.")) {
+      return;
+    }
+
+    state.rounds = [[]];
+    state.currentRoundIndex = 0;
+    state.draggedCardId = null;
+    state.editingCardId = null;
+    state.openMenuCardId = null;
+    cancelTouchDrag();
+    clearDropTargets();
+    closeDialog();
     render();
   }
 
@@ -312,14 +450,13 @@ const TurnosLancerPresenter = (() => {
   }
 
   function moveCardToSequence(cardId, index) {
-    state.sequence = state.sequence.filter((id) => id !== cardId);
-    state.sequence.splice(index, 0, cardId);
-    state.activeIndex = Math.min(state.activeIndex, Math.max(state.sequence.length - 1, 0));
+    const sequence = getCurrentSequence().filter((id) => id !== cardId);
+    sequence.splice(index, 0, cardId);
+    setCurrentSequence(sequence);
   }
 
   function removeCardFromSequence(cardId) {
-    state.sequence = state.sequence.filter((id) => id !== cardId);
-    state.activeIndex = Math.min(state.activeIndex, Math.max(state.sequence.length - 1, 0));
+    setCurrentSequence(getCurrentSequence().filter((id) => id !== cardId));
   }
 
   function getDropZoneAtPoint(clientX, clientY) {
@@ -329,6 +466,7 @@ const TurnosLancerPresenter = (() => {
   function updateTouchDropTarget(clientX, clientY) {
     clearDropTargets();
     const dropZone = getDropZoneAtPoint(clientX, clientY);
+    if (!isViewingLatestRound()) return null;
     dropZone?.classList.add("drag-over");
     return dropZone;
   }
@@ -357,6 +495,7 @@ const TurnosLancerPresenter = (() => {
 
     if (!touchDrag.isDragging && distance < 8) return;
     if (!touchDrag.isDragging) {
+      if (!isViewingLatestRound()) return;
       startTouchDrag(event, touchDrag);
     }
 
@@ -385,7 +524,7 @@ const TurnosLancerPresenter = (() => {
     }
 
     const dropZone = updateTouchDropTarget(touchDrag.currentX, touchDrag.currentY);
-    if (dropZone && getCard(touchDrag.cardId)) {
+    if (dropZone && getCard(touchDrag.cardId) && isViewingLatestRound()) {
       if (dropZone.dataset.zone === "sequence") {
         moveCardToSequence(
           touchDrag.cardId,
@@ -415,6 +554,7 @@ const TurnosLancerPresenter = (() => {
 
   function bindDropZone(list) {
     list.addEventListener("dragover", (event) => {
+      if (!isViewingLatestRound()) return;
       event.preventDefault();
       event.dataTransfer.dropEffect = "move";
       list.classList.add("drag-over");
@@ -428,6 +568,7 @@ const TurnosLancerPresenter = (() => {
 
     list.addEventListener("drop", (event) => {
       event.preventDefault();
+      if (!isViewingLatestRound()) return;
       const cardId = getDraggedCardId(event);
       if (!cardId || !getCard(cardId)) return;
 
@@ -453,20 +594,33 @@ const TurnosLancerPresenter = (() => {
     });
 
     getElement(selectors.advanceButton)?.addEventListener("click", () => {
-      if (state.sequence.length === 0) return;
-      state.activeIndex = (state.activeIndex + 1) % state.sequence.length;
-      render();
-    });
-
-    getElement(selectors.clearButton)?.addEventListener("click", () => {
-      state.sequence = [];
-      state.activeIndex = 0;
+      if (!isViewingLatestRound() || state.cards.length === 0) return;
+      state.rounds.push(getAllCardIds());
+      state.currentRoundIndex = getLatestRoundIndex();
       state.openMenuCardId = null;
       cancelTouchDrag();
       render();
     });
 
-    [getElement(selectors.rosterList), getElement(selectors.sequenceList)]
+    getElement(selectors.newCombatButton)?.addEventListener("click", resetCombat);
+
+    getElement(selectors.previousRoundButton)?.addEventListener("click", () => {
+      if (state.currentRoundIndex === 0) return;
+      state.currentRoundIndex -= 1;
+      state.openMenuCardId = null;
+      cancelTouchDrag();
+      render();
+    });
+
+    getElement(selectors.nextRoundButton)?.addEventListener("click", () => {
+      if (state.currentRoundIndex >= getLatestRoundIndex()) return;
+      state.currentRoundIndex += 1;
+      state.openMenuCardId = null;
+      cancelTouchDrag();
+      render();
+    });
+
+    [getElement(selectors.alliesList), getElement(selectors.enemiesList), getElement(selectors.sequenceList)]
       .filter(Boolean)
       .forEach(bindDropZone);
 
@@ -497,8 +651,8 @@ const TurnosLancerPresenter = (() => {
     clearData() {
       cancelTouchDrag();
       state.cards = [];
-      state.sequence = [];
-      state.activeIndex = 0;
+      state.rounds = [[]];
+      state.currentRoundIndex = 0;
       state.draggedCardId = null;
       state.editingCardId = null;
       state.openMenuCardId = null;

@@ -35,6 +35,11 @@
   font-size: 1.1rem;
 }
 
+.turnos-lancer-page button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .turnos-kicker {
   margin: 0 0 5px;
   color: #79c0ff;
@@ -48,6 +53,50 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.turnos-combat-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.turnos-round {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 2px;
+}
+
+.turnos-round .turnos-kicker {
+  margin: 0;
+}
+
+.turnos-round-controls {
+  display: grid;
+  grid-template-columns: 34px minmax(48px, auto) 34px;
+  align-items: center;
+  gap: 8px;
+}
+
+.turnos-round-button {
+  min-width: 34px;
+  width: 34px;
+  padding: 0;
+}
+
+.turnos-round-value {
+  min-height: 34px;
+  min-width: 48px;
+  display: grid;
+  place-items: center;
+  padding: 0 10px;
+  border: 1px solid rgba(121, 192, 255, 0.35);
+  border-radius: 8px;
+  background: rgba(88, 166, 255, 0.12);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 900;
 }
 
 .turnos-status {
@@ -74,7 +123,29 @@
   background: rgba(0, 0, 0, 0.14);
 }
 
+.turnos-roster-sections {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+}
+
+.turnos-roster-section {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.turnos-roster-section h3 {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.92rem;
+}
+
 .turnos-roster .turnos-card-list {
+  min-height: 0;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 10px;
 }
@@ -129,10 +200,6 @@
   pointer-events: none;
 }
 
-.turno-card.active-turn {
-  border-color: #f2cc60;
-}
-
 .turno-card-ally {
   background: linear-gradient(135deg, #1f7a3a, #39d353 52%, #9be9a8);
 }
@@ -144,6 +211,16 @@
 .turno-card-muted {
   filter: grayscale(0.85) saturate(0.35);
   opacity: 0.72;
+}
+
+.turno-card-readonly {
+  cursor: default;
+  touch-action: auto;
+}
+
+.turnos-readonly-zone {
+  border-style: solid;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .turno-card-name {
@@ -254,9 +331,7 @@
 }
 
 .turnos-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
+  display: block;
   font-size: 0.9rem;
   font-weight: 700;
 }
@@ -274,11 +349,11 @@
 
 .turnos-type-field {
   margin: 0;
-  padding: 12px;
-  display: flex;
-  gap: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 8px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  border: 0;
 }
 
 .turnos-type-field legend {
@@ -286,11 +361,66 @@
   font-weight: 800;
 }
 
-.turnos-type-field label {
+.turnos-type-field .turnos-type-option {
+  position: relative;
+  min-width: 0;
+  display: block;
+}
+
+.turnos-type-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.turnos-type-button {
+  min-height: 64px;
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #30363d, #484f58 52%, #6e7681);
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.45);
+}
+
+.turnos-type-option input:checked + .turnos-type-button {
+  border-color: rgba(255, 255, 255, 0.46);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
+.turnos-type-option input:focus-visible + .turnos-type-button {
+  outline: 2px solid #79c0ff;
+  outline-offset: 2px;
+}
+
+.turnos-type-option input:checked + .turnos-type-button-ally {
+  background: linear-gradient(135deg, #1f7a3a, #39d353 52%, #9be9a8);
+}
+
+.turnos-type-option input:checked + .turnos-type-button-enemy {
+  background: linear-gradient(135deg, #8e1f1b, #f85149 52%, #ffaba8);
+}
+
+.turnos-create-another {
+  width: fit-content;
+  max-width: 100%;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
-  font-weight: 700;
+  justify-content: flex-start;
+  gap: 9px;
+  white-space: nowrap;
+}
+
+.turnos-create-another input {
+  width: 18px;
+  height: 18px;
+  accent-color: #238636;
 }
 
 @media (max-width: 820px) {
@@ -318,6 +448,36 @@
     gap: 6px;
   }
 
+  .turnos-combat-actions {
+    justify-content: stretch;
+  }
+
+  .turnos-combat-actions .secondary-button {
+    width: 100%;
+  }
+
+  .turnos-round {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .turnos-round-controls {
+    grid-template-columns: 30px minmax(42px, auto) 30px;
+    gap: 6px;
+  }
+
+  .turnos-round-button {
+    min-width: 30px;
+    width: 30px;
+  }
+
+  .turnos-round-value {
+    min-height: 30px;
+    min-width: 42px;
+    font-size: 0.85rem;
+  }
+
   .turnos-panel-header h2 {
     font-size: 0.95rem;
   }
@@ -338,7 +498,20 @@
     gap: 7px;
   }
 
+  .turnos-roster-sections {
+    gap: 8px;
+  }
+
+  .turnos-roster-section {
+    gap: 6px;
+  }
+
+  .turnos-roster-section h3 {
+    font-size: 0.78rem;
+  }
+
   .turnos-roster .turnos-card-list {
+    min-height: 0;
     grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
   }
 

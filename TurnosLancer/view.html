@@ -9,10 +9,29 @@
                 <button id="addTurnoCard" class="primary-button" type="button">Nueva tarjeta</button>
             </div>
 
-            <div id="turnosRosterList" class="turnos-card-list" data-zone="roster" aria-label="Tarjetas disponibles"></div>
+            <div class="turnos-roster-sections">
+                <section class="turnos-roster-section" aria-labelledby="turnosAlliesTitle">
+                    <h3 id="turnosAlliesTitle">Aliados</h3>
+                    <div id="turnosAlliesList" class="turnos-card-list" data-zone="roster" aria-label="Participantes aliados"></div>
+                </section>
+
+                <section class="turnos-roster-section" aria-labelledby="turnosEnemiesTitle">
+                    <h3 id="turnosEnemiesTitle">Enemigos</h3>
+                    <div id="turnosEnemiesList" class="turnos-card-list" data-zone="roster" aria-label="Participantes enemigos"></div>
+                </section>
+            </div>
         </section>
 
         <section class="turnos-panel turnos-sequence" aria-labelledby="turnosSequenceTitle">
+            <div class="turnos-round" aria-labelledby="turnosRoundTitle">
+                <p id="turnosRoundTitle" class="turnos-kicker">Ronda</p>
+                <div class="turnos-round-controls">
+                    <button id="previousRound" class="secondary-button turnos-round-button" type="button" aria-label="Ronda anterior">&lt;</button>
+                    <span id="currentRound" class="turnos-round-value" aria-live="polite">1</span>
+                    <button id="nextRound" class="secondary-button turnos-round-button" type="button" aria-label="Ronda siguiente">&gt;</button>
+                </div>
+            </div>
+
             <div class="turnos-panel-header">
                 <div>
                     <p class="turnos-kicker">Orden actual</p>
@@ -20,12 +39,14 @@
                 </div>
                 <div class="turnos-actions">
                     <button id="advanceTurno" class="secondary-button" type="button">Siguiente turno</button>
-                    <button id="clearTurnos" class="secondary-button" type="button">Limpiar</button>
                 </div>
             </div>
 
             <div id="turnosStatus" class="turnos-status" aria-live="polite">Arrastra una tarjeta aqui para iniciar la ronda.</div>
             <div id="turnosSequenceList" class="turnos-card-list turnos-drop-zone" data-zone="sequence" aria-label="Lista de turnos"></div>
+            <div class="turnos-combat-actions">
+                <button id="newCombat" class="secondary-button" type="button">Nuevo combate</button>
+            </div>
         </section>
     </div>
 
@@ -43,15 +64,20 @@
 
             <fieldset class="turnos-type-field">
                 <legend>Bando</legend>
-                <label>
+                <label class="turnos-type-option">
                     <input type="radio" name="type" value="ally" checked />
-                    Aliado
+                    <span class="turnos-type-button turnos-type-button-ally">Aliado</span>
                 </label>
-                <label>
+                <label class="turnos-type-option">
                     <input type="radio" name="type" value="enemy" />
-                    Enemigo
+                    <span class="turnos-type-button turnos-type-button-enemy">Enemigo</span>
                 </label>
             </fieldset>
+
+            <label id="createAnotherCardOption" class="turnos-create-another">
+                <input id="createAnotherCard" name="createAnother" type="checkbox" />
+                Crear nueva tarjeta despues
+            </label>
 
             <div class="turnos-form-actions">
                 <button id="cancelTurnoCardDialog" class="secondary-button" type="button">Cancelar</button>
