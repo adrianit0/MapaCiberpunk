@@ -3,3 +3,9 @@ verify_jwt = false
 
 [functions.auth-register]
 verify_jwt = false
+
+[functions.lancer-glossary-tipo]
+verify_jwt = false
+
+[functions.lancer-glossary]
+verify_jwt = false

@@ -5,12 +5,14 @@ const MenuPresenter = (() => {
     mapButton: "openMapApp",
     turnosLancerButton: "openTurnosLancerApp",
     dadosButton: "openDadosApp",
+    glosarioButton: "openGlosarioApp",
     miniRolCyberpunkButton: "openMiniRolCyberpunkApp",
     adminButton: "openAdminApp",
     menuPage: "menuPage",
     mapPage: "mapPage",
     turnosLancerPage: "turnosLancerPage",
     dadosPage: "dadosPage",
+    glosarioPage: "glosarioPage",
     adminPage: "adminPage",
   };
 
@@ -25,6 +27,10 @@ const MenuPresenter = (() => {
     },
     [selectors.dadosButton]: {
       src: "Resources/DiceIcon.png",
+      alt: "",
+    },
+    [selectors.glosarioButton]: {
+      src: "Resources/GlossaryIcon.png",
       alt: "",
     },
     [selectors.miniRolCyberpunkButton]: {
@@ -69,6 +75,16 @@ const MenuPresenter = (() => {
       },
     },
     {
+      buttonId: selectors.glosarioButton,
+      pageId: selectors.glosarioPage,
+      tabLabel: "Glosario",
+      open: openGlosario,
+      access: {
+        guest: true,
+        authenticated: true,
+      },
+    },
+    {
       buttonId: selectors.miniRolCyberpunkButton,
       open: openMiniRolCyberpunk,
       access: {
@@ -94,6 +110,7 @@ const MenuPresenter = (() => {
   let mapLoaded = false;
   let turnosLancerLoaded = false;
   let dadosLoaded = false;
+  let glosarioLoaded = false;
   let adminLoaded = false;
 
   function getElement(id) {
@@ -151,6 +168,7 @@ const MenuPresenter = (() => {
     if (application.pageId === selectors.mapPage) mapLoaded = false;
     if (application.pageId === selectors.turnosLancerPage) turnosLancerLoaded = false;
     if (application.pageId === selectors.dadosPage) dadosLoaded = false;
+    if (application.pageId === selectors.glosarioPage) glosarioLoaded = false;
     if (application.pageId === selectors.adminPage) adminLoaded = false;
   }
 
@@ -272,6 +290,22 @@ const MenuPresenter = (() => {
     window.DadosPresenter?.init?.();
   }
 
+  async function openGlosario() {
+    const appContent = getElement(selectors.appContent);
+    if (!appContent) return;
+
+    loadStylesheet("Glosario/styles.css");
+
+    if (!glosarioLoaded || !getElement(selectors.glosarioPage)) {
+      appContent.insertAdjacentHTML("beforeend", await fetchHtml("Glosario/view.html"));
+      glosarioLoaded = true;
+    }
+
+    createTab(selectors.glosarioPage, "Glosario");
+    showPage(selectors.glosarioPage);
+    window.GlosarioPresenter?.init?.();
+  }
+
   function openMiniRolCyberpunk() {
     window.open("https://adrianit0.github.io/MiniRolCyberpunk/", "_blank", "noopener,noreferrer");
   }
@@ -333,6 +367,7 @@ const MenuPresenter = (() => {
       mapLoaded = false;
       turnosLancerLoaded = false;
       dadosLoaded = false;
+      glosarioLoaded = false;
       adminLoaded = false;
       createTab(selectors.menuPage, "Menu");
       addMenuAppIcons();

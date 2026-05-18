@@ -1,0 +1,142 @@
+<section id="glosarioPage" class="app-page glossary-page" data-page="glosario">
+    <div id="glossaryNotice" class="glossary-notice" role="note">
+        <span class="glossary-notice-mark" aria-hidden="true">/!\</span>
+        <span>Los datos de este glosario están sacados de la APP de Comp/Con y está traducido al Español con ChatGPT</span>
+        <button id="closeGlossaryNotice" class="glossary-notice-close" type="button" aria-label="Quitar aviso">×</button>
+    </div>
+
+    <div class="glossary-shell">
+        <header class="glossary-header">
+            <div>
+                <h2>Glosario</h2>
+                <p id="glossarySummary">Glosario de Lancer</p>
+            </div>
+            <div class="glossary-header-actions">
+                <button id="manageGlossaryTypes" class="secondary-button hidden" type="button">Tipos de glosario</button>
+                <button id="createGlossaryEntry" class="primary-button" type="button">Crear glosario</button>
+            </div>
+        </header>
+
+        <p id="glossaryMessage" class="glossary-message" role="status"></p>
+        <label class="glossary-search">
+            <span>Buscar glosario</span>
+            <input id="glossarySearch" type="search" autocomplete="off" placeholder="Buscar por nombre, descripcion o tipo" />
+        </label>
+        <div id="glossarySections" class="glossary-sections"></div>
+    </div>
+
+    <dialog id="glossaryDetailDialog" class="glossary-dialog glossary-detail-dialog" aria-labelledby="glossaryDetailTitle">
+        <article class="glossary-dialog-panel">
+            <header class="glossary-dialog-header">
+                <h2 id="glossaryDetailTitle">Detalle</h2>
+                <div class="glossary-dialog-actions">
+                    <button id="editGlossaryEntry" class="glossary-icon-button hidden" type="button" aria-label="Editar glosario" title="Editar">
+                        <span aria-hidden="true">✎</span>
+                    </button>
+                    <button id="deleteGlossaryEntry" class="glossary-icon-button glossary-danger-button hidden" type="button" aria-label="Borrar glosario" title="Borrar">
+                        <span aria-hidden="true">🗑</span>
+                    </button>
+                    <button id="closeGlossaryDetail" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+                </div>
+            </header>
+            <div id="glossaryDetailContent" class="glossary-detail-content"></div>
+        </article>
+    </dialog>
+
+    <dialog id="glossaryFormDialog" class="glossary-dialog glossary-form-dialog" aria-labelledby="glossaryFormTitle">
+        <form id="glossaryForm" class="glossary-dialog-panel">
+            <header class="glossary-dialog-header">
+                <h2 id="glossaryFormTitle">Crear glosario</h2>
+                <button id="closeGlossaryForm" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+            </header>
+
+            <div class="glossary-form-grid">
+                <section class="glossary-form-column" aria-labelledby="glossarySpanishTitle">
+                    <h3 id="glossarySpanishTitle">Español</h3>
+                    <label>
+                        Tipo
+                        <select id="glossaryType" name="type_id" required></select>
+                    </label>
+                    <label>
+                        Nombre
+                        <input id="glossaryNameEs" name="name_es" type="text" required />
+                    </label>
+                    <label>
+                        Descripcion
+                        <div class="glossary-editor-toolbar" data-editor-for="glossaryDescriptionEs" aria-label="Formato descripcion en español"></div>
+                        <div id="glossaryDescriptionEs" class="glossary-rich-editor" contenteditable="true" role="textbox" aria-multiline="true"></div>
+                    </label>
+                </section>
+
+                <section class="glossary-form-column" aria-labelledby="glossaryEnglishTitle">
+                    <h3 id="glossaryEnglishTitle">English</h3>
+                    <div class="glossary-form-spacer" aria-hidden="true"></div>
+                    <label>
+                        Name
+                        <input id="glossaryNameEn" name="name_en" type="text" required />
+                    </label>
+                    <label>
+                        Description
+                        <div class="glossary-editor-toolbar" data-editor-for="glossaryDescriptionEn" aria-label="English description format"></div>
+                        <div id="glossaryDescriptionEn" class="glossary-rich-editor" contenteditable="true" role="textbox" aria-multiline="true"></div>
+                    </label>
+                </section>
+            </div>
+
+            <p id="glossaryFormMessage" class="glossary-message" role="status"></p>
+            <div class="glossary-form-actions">
+                <button id="saveGlossaryEntry" class="primary-button" type="submit">Guardar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="glossaryTypesDialog" class="glossary-dialog glossary-types-dialog" aria-labelledby="glossaryTypesTitle">
+        <article class="glossary-dialog-panel">
+            <header class="glossary-dialog-header">
+                <h2 id="glossaryTypesTitle">Tipos de glosario</h2>
+                <div class="glossary-dialog-actions">
+                    <button id="newGlossaryType" class="primary-button" type="button">Nuevo</button>
+                    <button id="closeGlossaryTypes" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+                </div>
+            </header>
+
+            <p id="glossaryTypesMessage" class="glossary-message" role="status"></p>
+            <div class="glossary-types-table-wrap">
+                <table class="glossary-types-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Color</th>
+                        <th scope="col">Glosarios</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody id="glossaryTypesTableBody"></tbody>
+                </table>
+            </div>
+        </article>
+    </dialog>
+
+    <dialog id="glossaryTypeFormDialog" class="glossary-dialog glossary-type-form-dialog" aria-labelledby="glossaryTypeFormTitle">
+        <form id="glossaryTypeForm" class="glossary-dialog-panel">
+            <header class="glossary-dialog-header">
+                <h2 id="glossaryTypeFormTitle">Nuevo tipo</h2>
+                <button id="closeGlossaryTypeForm" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+            </header>
+
+            <label class="glossary-type-field">
+                Nombre
+                <input id="glossaryTypeName" name="name" type="text" required />
+            </label>
+            <label class="glossary-type-field">
+                Color
+                <input id="glossaryTypeColor" name="color" type="color" value="#79c0ff" required />
+            </label>
+
+            <p id="glossaryTypeFormMessage" class="glossary-message" role="status"></p>
+            <div class="glossary-form-actions">
+                <button class="primary-button" type="submit">Guardar</button>
+            </div>
+        </form>
+    </dialog>
+</section>

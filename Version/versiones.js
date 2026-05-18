@@ -62,9 +62,10 @@ const Versiones = (() => {
       ]
     },
     {
-      version: "0.4.1",
+      version: "0.5.0",
       fecha: new Date(2026, 4, 18, 5, 0, 0),
       cambios:  [
+        "Nueva APP: Glosario. Permite incluir información del manual de Lancer y poder acceder rapidamente a ellos",
         "Corregido error que volvía al menu principal cuando volvías a la aplicación",
         "Se ha mejorado la aplicación de Turnos Lancer",
         "Se ha incluido persistencia local en Turnos Lancer, si cambias de navegador o se limpia caché se pierde la info",
