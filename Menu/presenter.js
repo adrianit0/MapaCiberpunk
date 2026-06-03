@@ -2,12 +2,8 @@ const MenuPresenter = (() => {
   const selectors = {
     appContent: "appContent",
     appHeaderTabs: "appHeaderTabs",
-    mapButton: "openMapApp",
-    turnosLancerButton: "openTurnosLancerApp",
-    dadosButton: "openDadosApp",
-    glosarioButton: "openGlosarioApp",
-    miniRolCyberpunkButton: "openMiniRolCyberpunkApp",
-    adminButton: "openAdminApp",
+    menuFavorites: "mainMenuFavorites",
+    menuCategories: "mainMenuCategories",
     menuPage: "menuPage",
     mapPage: "mapPage",
     turnosLancerPage: "turnosLancerPage",
@@ -16,38 +12,22 @@ const MenuPresenter = (() => {
     adminPage: "adminPage",
   };
 
-  const appIcons = {
-    [selectors.mapButton]: {
-      src: "Resources/MapIcon.png",
-      alt: "",
-    },
-    [selectors.turnosLancerButton]: {
-      src: "Resources/TurnIcon.png",
-      alt: "",
-    },
-    [selectors.dadosButton]: {
-      src: "Resources/DiceIcon.png",
-      alt: "",
-    },
-    [selectors.glosarioButton]: {
-      src: "Resources/GlossaryIcon.png",
-      alt: "",
-    },
-    [selectors.miniRolCyberpunkButton]: {
-      src: "Resources/RoleIcon.png",
-      alt: "",
-    },
-    [selectors.adminButton]: {
-      src: "Resources/AdminIcon.png",
-      alt: "",
-    },
-  };
+  const categories = ["Cyberpunk", "Lancer", "Admin"];
+  const favoriteScale = 1.2;
+  const favoritesUrl = `${window.AppConfig?.supabase?.rootUrl ?? "https://wtkumfcjqqmgokgrbxxr.supabase.co"}/functions/v1/menu-favorites`;
 
   const applications = [
     {
-      buttonId: selectors.mapButton,
+      id: "mapa",
       pageId: selectors.mapPage,
       tabLabel: "Mapa",
+      title: "Mapa",
+      description: "Mapa interactivo de Night City 2045",
+      icon: {
+        src: "Resources/MapIcon.png",
+        alt: "Icono de Mapa",
+      },
+      Categories: ["Cyberpunk"],
       open: openMap,
       access: {
         guest: true,
@@ -55,9 +35,16 @@ const MenuPresenter = (() => {
       },
     },
     {
-      buttonId: selectors.turnosLancerButton,
+      id: "turnos-lancer",
       pageId: selectors.turnosLancerPage,
       tabLabel: "Turnos de Lancer",
+      title: "Turnos de Lancer",
+      description: "Control de activaciones alternas para aliados y enemigos",
+      icon: {
+        src: "Resources/TurnIcon.png",
+        alt: "Icono de Turnos de Lancer",
+      },
+      Categories: ["Lancer"],
       open: openTurnosLancer,
       access: {
         guest: true,
@@ -65,9 +52,16 @@ const MenuPresenter = (() => {
       },
     },
     {
-      buttonId: selectors.dadosButton,
+      id: "dados",
       pageId: selectors.dadosPage,
       tabLabel: "Dados",
+      title: "Dados",
+      description: "Lanzador de dados con historial entre jugadores",
+      icon: {
+        src: "Resources/DiceIcon.png",
+        alt: "Icono de Dados",
+      },
+      Categories: ["Cyberpunk", "Lancer"],
       open: openDados,
       access: {
         guest: true,
@@ -75,9 +69,16 @@ const MenuPresenter = (() => {
       },
     },
     {
-      buttonId: selectors.glosarioButton,
+      id: "glosario",
       pageId: selectors.glosarioPage,
       tabLabel: "Glosario",
+      title: "Glosario",
+      description: "Tarjetas de referencia para el glosario de Lancer",
+      icon: {
+        src: "Resources/GlossaryIcon.png",
+        alt: "Icono de Glosario",
+      },
+      Categories: ["Lancer"],
       open: openGlosario,
       access: {
         guest: true,
@@ -85,7 +86,14 @@ const MenuPresenter = (() => {
       },
     },
     {
-      buttonId: selectors.miniRolCyberpunkButton,
+      id: "mini-rol-cyberpunk",
+      title: "MiniRol Cyberpunk",
+      description: "Un minijuego de decisiones dentro del mundo de Cyberpunk RED",
+      icon: {
+        src: "Resources/RoleIcon.png",
+        alt: "Icono de MiniRol Cyberpunk",
+      },
+      Categories: ["Cyberpunk"],
       open: openMiniRolCyberpunk,
       access: {
         guest: true,
@@ -93,9 +101,16 @@ const MenuPresenter = (() => {
       },
     },
     {
-      buttonId: selectors.adminButton,
+      id: "admin",
       pageId: selectors.adminPage,
       tabLabel: "Admin",
+      title: "Admin",
+      description: "Gestion de usuarios y roles",
+      icon: {
+        src: "Resources/AdminIcon.png",
+        alt: "Icono de Admin",
+      },
+      Categories: ["Admin"],
       open: openAdmin,
       access: {
         guest: false,
@@ -106,7 +121,10 @@ const MenuPresenter = (() => {
   ];
 
   const tabs = new Map();
+  const favoriteAppIds = new Set();
   let menuLoaded = false;
+  let menuEventsBound = false;
+  let favoritesLoadedForUserId = null;
   let mapLoaded = false;
   let turnosLancerLoaded = false;
   let dadosLoaded = false;
@@ -158,6 +176,10 @@ const MenuPresenter = (() => {
     return userHasAnyRole(access.roles);
   }
 
+  function getAccessibleApplications() {
+    return applications.filter(canOpenApplication);
+  }
+
   function closeApplication(application) {
     if (application.pageId) {
       getElement(application.pageId)?.remove();
@@ -174,13 +196,12 @@ const MenuPresenter = (() => {
 
   function applyApplicationAccess() {
     applications.forEach((application) => {
-      const isAllowed = canOpenApplication(application);
-      getElement(application.buttonId)?.classList.toggle("hidden", !isAllowed);
-
-      if (!isAllowed) {
+      if (!canOpenApplication(application)) {
         closeApplication(application);
       }
     });
+
+    renderMenuApplications();
   }
 
   function loadStylesheet(href) {
@@ -240,6 +261,237 @@ const MenuPresenter = (() => {
     appHeaderTabs.appendChild(tab);
     tabs.set(pageId, tab);
     return tab;
+  }
+
+  function createApplicationButton(application, options = {}) {
+    const button = document.createElement("div");
+    button.setAttribute("role", "button");
+    button.setAttribute("tabindex", "0");
+    button.className = options.favorite ? "main-menu-app main-menu-app-favorite" : "main-menu-app";
+    button.dataset.appId = application.id;
+    button.style.setProperty("--app-icon-scale", options.favorite ? String(favoriteScale) : "1");
+
+    const favoriteButton = document.createElement("span");
+    favoriteButton.className = "main-menu-favorite-toggle";
+    favoriteButton.dataset.favoriteToggle = application.id;
+    favoriteButton.setAttribute("role", "button");
+    favoriteButton.setAttribute("tabindex", "0");
+    favoriteButton.setAttribute("aria-pressed", String(favoriteAppIds.has(application.id)));
+    favoriteButton.setAttribute("aria-disabled", String(Boolean(window.AppSession?.isGuest)));
+    favoriteButton.setAttribute("aria-label", window.AppSession?.isGuest
+      ? "Inicia sesion para guardar favoritos"
+      : favoriteAppIds.has(application.id)
+        ? `Quitar ${application.title} de favoritos`
+        : `Anadir ${application.title} a favoritos`);
+    favoriteButton.title = window.AppSession?.isGuest
+      ? "Inicia sesion para guardar favoritos"
+      : favoriteButton.getAttribute("aria-label");
+    favoriteButton.textContent = favoriteAppIds.has(application.id) ? "\u2605" : "\u2606";
+
+    const image = document.createElement("img");
+    image.className = "main-menu-app-icon";
+    image.src = application.icon.src;
+    image.alt = application.icon.alt;
+
+    const title = document.createElement("span");
+    title.className = "main-menu-app-title";
+    title.textContent = application.title;
+
+    const description = document.createElement("span");
+    description.className = "main-menu-app-description";
+    description.textContent = application.description;
+
+    button.append(favoriteButton, image, title, description);
+    return button;
+  }
+
+  function renderFavorites(accessibleApplications) {
+    const favoritesContainer = getElement(selectors.menuFavorites);
+    if (!favoritesContainer) return;
+
+    const favoriteApplications = accessibleApplications.filter((application) => favoriteAppIds.has(application.id));
+    favoritesContainer.replaceChildren();
+    favoritesContainer.classList.toggle("hidden", favoriteApplications.length === 0);
+
+    if (!favoriteApplications.length) {
+      return;
+    }
+
+    const title = document.createElement("h3");
+    title.id = "mainMenuFavoritesTitle";
+    title.textContent = "Favoritos";
+
+    const list = document.createElement("div");
+    list.className = "main-menu-apps main-menu-favorite-apps";
+    list.setAttribute("aria-label", "Aplicaciones favoritas");
+
+    favoriteApplications.forEach((application) => {
+      list.appendChild(createApplicationButton(application, { favorite: true }));
+    });
+
+    favoritesContainer.append(title, list);
+  }
+
+  function renderCategories(accessibleApplications) {
+    const categoriesContainer = getElement(selectors.menuCategories);
+    if (!categoriesContainer) return;
+
+    categoriesContainer.replaceChildren();
+
+    categories.forEach((category) => {
+      const categoryApplications = accessibleApplications
+        .filter((application) => application.Categories.includes(category));
+
+      if (!categoryApplications.length) {
+        return;
+      }
+
+      const details = document.createElement("details");
+      details.className = "main-menu-category";
+
+      const summary = document.createElement("summary");
+      summary.className = "main-menu-category-summary";
+      summary.textContent = category;
+
+      const list = document.createElement("div");
+      list.className = "main-menu-apps";
+      list.setAttribute("aria-label", `Aplicaciones de ${category}`);
+
+      categoryApplications.forEach((application) => {
+        list.appendChild(createApplicationButton(application));
+      });
+
+      details.append(summary, list);
+      categoriesContainer.appendChild(details);
+    });
+  }
+
+  function renderMenuApplications() {
+    const accessibleApplications = getAccessibleApplications();
+    renderFavorites(accessibleApplications);
+    renderCategories(accessibleApplications);
+  }
+
+  async function loadFavoriteApplications() {
+    const sessionUserId = window.AppSession?.user?.id ?? null;
+
+    if (!window.AppSession || window.AppSession.isGuest || !sessionUserId) {
+      favoriteAppIds.clear();
+      favoritesLoadedForUserId = null;
+      return;
+    }
+
+    if (favoritesLoadedForUserId === sessionUserId) {
+      return;
+    }
+
+    const favorites = await window.AjaxController.ajaxRequest(favoritesUrl, {
+      method: "GET",
+      showLoading: false,
+    });
+
+    favoriteAppIds.clear();
+    (favorites ?? [])
+      .map((favorite) => favorite.app_id ?? favorite.appId ?? favorite)
+      .filter(Boolean)
+      .forEach((appId) => favoriteAppIds.add(String(appId)));
+    favoritesLoadedForUserId = sessionUserId;
+  }
+
+  async function setFavoriteApplication(applicationId, isFavorite) {
+    if (!window.AppSession || window.AppSession.isGuest) {
+      return;
+    }
+
+    if (isFavorite) {
+      favoriteAppIds.add(applicationId);
+    } else {
+      favoriteAppIds.delete(applicationId);
+    }
+
+    renderMenuApplications();
+
+    try {
+      await window.AjaxController.ajaxRequest(favoritesUrl, {
+        method: "PUT",
+        body: JSON.stringify({
+          app_id: applicationId,
+          is_favorite: isFavorite,
+        }),
+        showLoading: false,
+      });
+    } catch (error) {
+      if (isFavorite) {
+        favoriteAppIds.delete(applicationId);
+      } else {
+        favoriteAppIds.add(applicationId);
+      }
+
+      renderMenuApplications();
+      console.warn("No se pudo guardar el favorito del menu.", error);
+    }
+  }
+
+  function getApplicationById(applicationId) {
+    return applications.find((application) => application.id === applicationId) ?? null;
+  }
+
+  function handleFavoriteToggle(applicationId) {
+    const application = getApplicationById(applicationId);
+    if (!application || !canOpenApplication(application)) {
+      return;
+    }
+
+    const isFavorite = !favoriteAppIds.has(applicationId);
+    setFavoriteApplication(applicationId, isFavorite);
+  }
+
+  function bindMenuEvents() {
+    const menuPage = getElement(selectors.menuPage);
+    if (!menuPage || menuEventsBound) {
+      return;
+    }
+
+    menuPage.addEventListener("click", (event) => {
+      const favoriteToggle = event.target.closest("[data-favorite-toggle]");
+      if (favoriteToggle) {
+        event.preventDefault();
+        event.stopPropagation();
+        handleFavoriteToggle(favoriteToggle.dataset.favoriteToggle);
+        return;
+      }
+
+      const appButton = event.target.closest("[data-app-id]");
+      const application = appButton ? getApplicationById(appButton.dataset.appId) : null;
+      if (application && canOpenApplication(application)) {
+        application.open();
+      }
+    });
+
+    menuPage.addEventListener("keydown", (event) => {
+      const favoriteToggle = event.target.closest("[data-favorite-toggle]");
+      const isActionKey = ["Enter", " "].includes(event.key);
+
+      if (!isActionKey) {
+        return;
+      }
+
+      if (favoriteToggle) {
+        event.preventDefault();
+        event.stopPropagation();
+        handleFavoriteToggle(favoriteToggle.dataset.favoriteToggle);
+        return;
+      }
+
+      const appButton = event.target.closest("[data-app-id]");
+      const application = appButton ? getApplicationById(appButton.dataset.appId) : null;
+      if (application && canOpenApplication(application)) {
+        event.preventDefault();
+        application.open();
+      }
+    });
+
+    menuEventsBound = true;
   }
 
   async function openMap() {
@@ -326,33 +578,6 @@ const MenuPresenter = (() => {
     await window.AdminPresenter?.init?.();
   }
 
-  function bindMenuEvents() {
-    applications.forEach((application) => {
-      getElement(application.buttonId)?.addEventListener("click", () => {
-        if (canOpenApplication(application)) {
-          application.open();
-        }
-      });
-    });
-  }
-
-  function addMenuAppIcons() {
-    Object.entries(appIcons).forEach(([buttonId, icon]) => {
-      const button = getElement(buttonId);
-      if (!button || button.querySelector(".main-menu-app-icon")) {
-        return;
-      }
-
-      const image = document.createElement("img");
-      image.className = "main-menu-app-icon";
-      image.src = icon.src;
-      image.alt = icon.alt;
-      image.setAttribute("aria-hidden", "true");
-
-      button.prepend(image);
-    });
-  }
-
   async function init(options = {}) {
     const appContent = getElement(selectors.appContent);
     const appHeaderTabs = getElement(selectors.appHeaderTabs);
@@ -364,15 +589,21 @@ const MenuPresenter = (() => {
       appHeaderTabs.innerHTML = "";
       tabs.clear();
       menuLoaded = true;
+      menuEventsBound = false;
       mapLoaded = false;
       turnosLancerLoaded = false;
       dadosLoaded = false;
       glosarioLoaded = false;
       adminLoaded = false;
       createTab(selectors.menuPage, "Menu");
-      addMenuAppIcons();
       bindMenuEvents();
     }
+
+    await loadFavoriteApplications().catch((error) => {
+      favoriteAppIds.clear();
+      favoritesLoadedForUserId = null;
+      console.warn("No se pudieron cargar los favoritos del menu.", error);
+    });
 
     applyApplicationAccess();
     const pageToShow = options.preserveActivePage && getElement(activePageId)
@@ -382,6 +613,8 @@ const MenuPresenter = (() => {
   }
 
   function clear() {
+    favoriteAppIds.clear();
+    favoritesLoadedForUserId = null;
     showPage(selectors.menuPage);
   }
 

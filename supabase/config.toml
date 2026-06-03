@@ -9,3 +9,6 @@ verify_jwt = false
 
 [functions.lancer-glossary]
 verify_jwt = false
+
+[functions.menu-favorites]
+verify_jwt = false

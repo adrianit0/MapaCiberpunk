@@ -24,6 +24,7 @@ const sideMenu = document.getElementById("sideMenu");
 const menuContent = document.getElementById("menuContent");
 const addLocationToggle = document.getElementById("addLocationToggle");
 const regionsToggle = document.getElementById("regionsToggle");
+const defaultLocationVisibilityToggle = document.getElementById("defaultLocationVisibilityToggle");
 const addLocationDialog = document.getElementById("addLocationDialog");
 const addLocationForm = document.getElementById("addLocationForm");
 const closeLocationDialog = document.getElementById("closeLocationDialog");
@@ -36,6 +37,7 @@ const DEBUG = false;
 
 const MAP_WIDTH = 4614;
 const MAP_HEIGHT = 4606;
+const DEFAULT_LOCATION_DISABLED_COLOR = "#8b949e";
 
 let scale = 1;
 let minScale = 1;
@@ -59,6 +61,7 @@ let debugClickedCoordinates = [];
 let isMenuOpen = false;
 let isAddingLocation = false;
 let areRegionsVisible = true;
+let areDefaultLocationsColored = true;
 let pendingLocationCoordinates = null;
 let editingLocationId = null;
 let isSavingLocation = false;
@@ -92,6 +95,22 @@ function setRegionsVisible(visible) {
   if (!visible && document.querySelector(".region.active")) {
     closeInfo();
   }
+}
+
+function getLocationDisplayColor(location) {
+  if (!areDefaultLocationsColored && location.editable === false) {
+    return DEFAULT_LOCATION_DISABLED_COLOR;
+  }
+
+  return location.color || "#6f42c1";
+}
+
+function setDefaultLocationsColored(visible) {
+  areDefaultLocationsColored = visible;
+  defaultLocationVisibilityToggle.classList.toggle("active", visible);
+  defaultLocationVisibilityToggle.setAttribute("aria-pressed", String(visible));
+  renderLocations(window.Locations?.locations ?? []);
+  renderLocationsMenu(window.Locations?.locations ?? []);
 }
 
 function populateLocationTypes() {
@@ -213,6 +232,10 @@ addLocationToggle.addEventListener("click", () => {
 
 regionsToggle.addEventListener("click", () => {
   setRegionsVisible(!areRegionsVisible);
+});
+
+defaultLocationVisibilityToggle.addEventListener("click", () => {
+  setDefaultLocationsColored(!areDefaultLocationsColored);
 });
 
 closeLocationDialog.addEventListener("click", cancelLocationDialogState);
@@ -628,7 +651,7 @@ function renderLocations(points = []) {
 
     const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     circle.setAttribute("r", "18");
-    circle.setAttribute("fill", location.color || "#6f42c1");
+    circle.setAttribute("fill", getLocationDisplayColor(location));
 
     const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
     label.setAttribute("class", "poi-label poi-label-light");
@@ -675,7 +698,7 @@ function renderLocationsMenu(points = []) {
       button.className = "menu-item";
       button.innerHTML = `
         <span class="menu-item-label">
-          <span class="menu-color-dot" style="background:${location.color}">${location.reference}</span>
+          <span class="menu-color-dot" style="background:${getLocationDisplayColor(location)}">${location.reference}</span>
           <span>${location.title}</span>
         </span>
       `;
@@ -713,6 +736,7 @@ clearMapData = () => {
   cancelLocationDialogState();
   setAddingLocation(false);
   setRegionsVisible(true);
+  setDefaultLocationsColored(true);
   setMenuOpen(false);
   renderLocations([]);
   renderLocationsMenu([]);
@@ -727,6 +751,7 @@ mapContent.style.width = `${MAP_WIDTH}px`;
 mapContent.style.height = `${MAP_HEIGHT}px`;
 renderRegions(window.Regions?.regions ?? []);
 setRegionsVisible(areRegionsVisible);
+setDefaultLocationsColored(areDefaultLocationsColored);
 
 try {
   await refreshMapData();

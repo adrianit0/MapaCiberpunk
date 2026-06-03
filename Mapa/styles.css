@@ -39,7 +39,8 @@
 }
 
 .add-location-toggle,
-.regions-toggle {
+.regions-toggle,
+.default-location-visibility-toggle {
   min-height: 40px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.35);
@@ -57,7 +58,8 @@
   white-space: nowrap;
 }
 
-.regions-toggle {
+.regions-toggle,
+.default-location-visibility-toggle {
   width: 40px;
   padding: 0;
   display: inline-flex;
@@ -65,7 +67,8 @@
   justify-content: center;
 }
 
-.regions-toggle svg {
+.regions-toggle svg,
+.default-location-visibility-toggle svg {
   width: 21px;
   height: 21px;
   fill: none;
@@ -76,7 +79,8 @@
 }
 
 .add-location-toggle.active,
-.regions-toggle.active {
+.regions-toggle.active,
+.default-location-visibility-toggle.active {
   border-color: #39d353;
   background: rgba(46, 160, 67, 0.92);
 }

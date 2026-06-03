@@ -71,6 +71,15 @@ const Versiones = (() => {
         "Se ha incluido persistencia local en Turnos Lancer, si cambias de navegador o se limpia caché se pierde la info",
         "Se ha mejorado la tirada de dados provocando que no haya tiempos muertos entre tiradas"
       ]
+    },
+    {
+      version: "0.5.1",
+      fecha: new Date(2026, 5, 3, 5, 0, 0),
+      cambios:  [
+        "Se ha ordenado las apps del menú",
+        "Incluido sistema de APPs favoritas en el menú",
+        "Incluido opción para quitar el color de las localizaciones por defecto"
+      ]
     }
   ];
 

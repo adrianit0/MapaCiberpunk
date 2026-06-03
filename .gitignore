@@ -3,3 +3,5 @@
 
 # Opcional: ignorar archivos de proyecto individuales
 *.iml
+# Supabase local temp files
+supabase/.temp/
