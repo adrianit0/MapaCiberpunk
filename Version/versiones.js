@@ -80,6 +80,13 @@ const Versiones = (() => {
         "Incluido sistema de APPs favoritas en el menú",
         "Incluido opción para quitar el color de las localizaciones por defecto"
       ]
+    },
+    {
+      version: "0.5.21",
+      fecha: new Date(2026, 5, 5, 5, 0, 0),
+      cambios:  [
+        "Minor bugs fixed"
+      ]
     }
   ];
 

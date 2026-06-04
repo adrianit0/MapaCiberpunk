@@ -236,7 +236,7 @@ function normalizeServerLocation(location) {
     title: String(location.title ?? ""),
     info: String(location.info ?? ""),
     visibility: normalizeLocationVisibility(location.visibility),
-    editable: location.editable ?? true,
+    editable: isAdminMode() || (location.editable ?? true),
     cyber_location_type: location.cyber_location_type,
     color
   };
@@ -248,6 +248,17 @@ function isKnownLocationType(type) {
 
 function isAuthenticatedMode() {
   return Boolean(window.AppSession && !window.AppSession.isGuest);
+}
+
+function userHasRole(roleName) {
+  const normalizedRoleName = String(roleName ?? "").trim().toLowerCase();
+
+  return (window.AppSession?.profile?.roles ?? [])
+    .some((role) => String(role?.name ?? "").trim().toLowerCase() === normalizedRoleName);
+}
+
+function isAdminMode() {
+  return isAuthenticatedMode() && userHasRole("admin");
 }
 
 function getLocationTypeNameById(id) {
@@ -457,7 +468,7 @@ function updateLocation(id, updates) {
     throw new Error("La localizacion no existe.");
   }
 
-  if (!location.editable) {
+  if (!location.editable && !isAdminMode()) {
     throw new Error("Esta localización no se puede editar.");
   }
 
@@ -529,7 +540,7 @@ function deleteLocation(id) {
     throw new Error("La localizacion no existe.");
   }
 
-  if (!location.editable) {
+  if (!location.editable && !isAdminMode()) {
     throw new Error("Esta localizacion no se puede eliminar.");
   }
 

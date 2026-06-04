@@ -11,14 +11,64 @@ const parseVisibility = (value: unknown) => {
     return visibility === 1 || visibility === 2 ? visibility : 2;
 };
 
+function getRequiredEnv(name: string) {
+    const value = Deno.env.get(name);
+
+    if (!value) {
+        throw new Error(`${name} is not configured.`);
+    }
+
+    return value;
+}
+
+function normalizeRoleName(roleName: unknown) {
+    return String(roleName ?? "").trim().toLowerCase();
+}
+
+function activeRoleFilter() {
+    return `date_end.is.null,date_end.gte.${new Date().toISOString().slice(0, 10)}`;
+}
+
+async function isAdmin(admin: ReturnType<typeof createClient>, userId: string) {
+    const { data: assignments, error: assignmentsError } = await admin
+        .from("profile_rol")
+        .select("rol_id, date_end")
+        .eq("user_id", userId)
+        .or(activeRoleFilter());
+
+    if (assignmentsError) {
+        throw assignmentsError;
+    }
+
+    const roleIds = [...new Set((assignments ?? []).map((assignment) => assignment.rol_id))];
+    if (roleIds.length === 0) {
+        return false;
+    }
+
+    const { data: roles, error: rolesError } = await admin
+        .from("rol")
+        .select("name")
+        .in("id", roleIds);
+
+    if (rolesError) {
+        throw rolesError;
+    }
+
+    return (roles ?? []).some((role) => normalizeRoleName(role.name) === "admin");
+}
+
 Deno.serve(async (req) => {
     if (req.method === "OPTIONS") {
         return new Response("ok", { headers: corsHeaders });
     }
 
+    const supabaseUrl = getRequiredEnv("SUPABASE_URL");
+    const supabaseAnonKey = getRequiredEnv("SUPABASE_ANON_KEY");
+    const supabaseServiceRoleKey = getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
+
     const supabase = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_ANON_KEY")!,
+        supabaseUrl,
+        supabaseAnonKey,
         {
             global: {
                 headers: {
@@ -27,6 +77,7 @@ Deno.serve(async (req) => {
             },
         },
     );
+    const admin = createClient(supabaseUrl, supabaseServiceRoleKey);
 
     const {
         data: { user },
@@ -40,8 +91,10 @@ Deno.serve(async (req) => {
         );
     }
 
+    const userIsAdmin = await isAdmin(admin, user.id);
+
     if (req.method === "GET") {
-        const { data, error } = await supabase
+        let query = admin
             .from("cyber_location")
             .select(`
         id,
@@ -59,9 +112,13 @@ Deno.serve(async (req) => {
           name,
           color
         )
-      `)
-            .or(`visibility.eq.1,and(visibility.eq.2,user_id.eq.${user.id})`)
-            .order("id");
+      `);
+
+        if (!userIsAdmin) {
+            query = query.or(`visibility.eq.1,and(visibility.eq.2,user_id.eq.${user.id})`);
+        }
+
+        const { data, error } = await query.order("id");
 
         if (error) {
             return Response.json({ error: error.message }, { status: 400, headers: corsHeaders });
@@ -73,7 +130,7 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
         const body = await req.json();
 
-        const { data, error } = await supabase
+        const { data, error } = await admin
             .from("cyber_location")
             .insert({
                 type_id: body.type_id,
@@ -106,7 +163,7 @@ Deno.serve(async (req) => {
             );
         }
 
-        const { data, error } = await supabase
+        let query = admin
             .from("cyber_location")
             .update({
                 type_id: body.type_id,
@@ -118,13 +175,25 @@ Deno.serve(async (req) => {
                 editable: body.editable,
                 visibility: parseVisibility(body.visibility),
             })
-            .eq("id", body.id)
-            .eq("user_id", user.id)
+            .eq("id", body.id);
+
+        if (!userIsAdmin) {
+            query = query.eq("user_id", user.id);
+        }
+
+        const { data, error } = await query
             .select()
-            .single();
+            .maybeSingle();
 
         if (error) {
             return Response.json({ error: error.message }, { status: 400, headers: corsHeaders });
+        }
+
+        if (!data) {
+            return Response.json(
+                { error: "Location not found or not editable by this user" },
+                { status: 404, headers: corsHeaders },
+            );
         }
 
         return Response.json(data, { headers: corsHeaders });
@@ -140,14 +209,28 @@ Deno.serve(async (req) => {
             );
         }
 
-        const { error } = await supabase
+        let query = admin
             .from("cyber_location")
             .delete()
-            .eq("id", body.id)
-            .eq("user_id", user.id);
+            .eq("id", body.id);
+
+        if (!userIsAdmin) {
+            query = query.eq("user_id", user.id);
+        }
+
+        const { data, error } = await query
+            .select("id")
+            .maybeSingle();
 
         if (error) {
             return Response.json({ error: error.message }, { status: 400, headers: corsHeaders });
+        }
+
+        if (!data) {
+            return Response.json(
+                { error: "Location not found or not editable by this user" },
+                { status: 404, headers: corsHeaders },
+            );
         }
 
         return Response.json({ success: true }, { headers: corsHeaders });
