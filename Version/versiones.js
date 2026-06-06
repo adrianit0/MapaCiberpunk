@@ -82,10 +82,17 @@ const Versiones = (() => {
       ]
     },
     {
-      version: "0.5.21",
+      version: "0.5.2",
       fecha: new Date(2026, 5, 5, 5, 0, 0),
       cambios:  [
         "Minor bugs fixed"
+      ]
+    },
+    {
+      version: "0.6.0",
+      fecha: new Date(2026, 5, 6, 5, 0, 0),
+      cambios:  [
+        "Incluido APPs de Mapa Lancer y Admin Mapa Lancer"
       ]
     }
   ];
