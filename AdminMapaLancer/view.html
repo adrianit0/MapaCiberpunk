@@ -1,0 +1,51 @@
+﻿<section id="adminMapaLancerPage" class="app-page admin-lancer-map-page hidden" data-page="admin-mapa-lancer">
+  <section class="admin-lancer-layout">
+    <aside class="admin-lancer-panel">
+      <h2>Admin Mapa Lancer</h2>
+      <p class="admin-lancer-note">Crea mapas, ajusta la rejilla hexagonal y prepara personajes invocables.</p>
+
+      <form id="adminLancerMapForm" class="admin-lancer-form">
+        <h3>Nuevo mapa</h3>
+        <label>Nombre <input id="adminLancerMapName" name="name" type="text" required /></label>
+        <label>Imagen <input id="adminLancerMapFile" name="file" type="file" accept="image/*" required /></label>
+        <label class="admin-lancer-check"><input id="adminLancerMapActive" name="is_active" type="checkbox" checked /> Activar mapa al guardar</label>
+        <button class="primary-button" type="submit">Subir mapa</button>
+      </form>
+
+      <form id="adminLancerCharacterForm" class="admin-lancer-form">
+        <h3>Nuevo personaje</h3>
+        <label>Nombre <input id="adminLancerCharacterName" name="name" type="text" required /></label>
+        <label>Imagen <input id="adminLancerCharacterFile" name="file" type="file" accept="image/*" required /></label>
+        <button class="primary-button" type="submit">Crear personaje</button>
+      </form>
+
+      <section>
+        <h3>Mapas</h3>
+        <div id="adminLancerMapList" class="admin-lancer-list"></div>
+      </section>
+
+      <section>
+        <h3>Personajes</h3>
+        <div id="adminLancerCharacterList" class="admin-lancer-list"></div>
+      </section>
+    </aside>
+
+    <main class="admin-lancer-editor">
+      <div class="admin-lancer-editor-bar">
+        <label>Origen X <input id="adminLancerOriginX" type="number" step="1" /></label>
+        <label>Origen Y <input id="adminLancerOriginY" type="number" step="1" /></label>
+        <label>Tamano hex <input id="adminLancerHexSize" type="number" min="8" step="1" /></label>
+        <label>Rotate <input id="adminLancerGridRotation" type="number" step="1" /></label>
+        <button id="adminLancerSaveGrid" class="primary-button" type="button">Guardar rejilla</button>
+        <span id="adminLancerStatus" class="admin-lancer-status" role="status"></span>
+      </div>
+
+      <div id="adminLancerPreview" class="admin-lancer-preview">
+        <div id="adminLancerPreviewContent" class="admin-lancer-preview-content">
+          <img id="adminLancerPreviewImage" alt="Vista previa del mapa Lancer" draggable="false" />
+          <svg id="adminLancerPreviewOverlay" class="admin-lancer-preview-overlay"></svg>
+        </div>
+      </div>
+    </main>
+  </section>
+</section>

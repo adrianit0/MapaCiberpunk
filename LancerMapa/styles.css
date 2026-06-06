@@ -1,0 +1,219 @@
+﻿.lancer-map-page,
+.lancer-map-stage {
+  min-height: 0;
+  height: 100%;
+}
+
+.lancer-map-stage {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 22% 18%, rgba(32, 201, 151, 0.16), transparent 34%), #07100f;
+}
+
+.lancer-map-toolbar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lancer-tool-button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(184, 255, 219, 0.42);
+  border-radius: 9px;
+  background: rgba(5, 17, 16, 0.88);
+  color: #eafff5;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.lancer-tool-button[aria-pressed="true"] {
+  border-color: #20c997;
+  background: rgba(32, 201, 151, 0.82);
+  color: #03100d;
+}
+
+.lancer-map-status {
+  color: #b8ffdb;
+  font-size: 0.88rem;
+  text-shadow: 0 1px 2px #000;
+}
+
+.lancer-map-viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+
+.lancer-map-viewport.dragging {
+  cursor: grabbing;
+}
+
+.lancer-map-content {
+  position: relative;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.lancer-map-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: fill;
+  user-select: none;
+  pointer-events: none;
+}
+
+.lancer-map-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.lancer-hex {
+  fill: rgba(32, 201, 151, 0.025);
+  stroke: rgba(184, 255, 219, 0.42);
+  stroke-width: 1.5;
+  pointer-events: all;
+}
+
+.lancer-hex:hover,
+.lancer-hex.measure-selected {
+  fill: rgba(32, 201, 151, 0.24);
+  stroke: #20c997;
+}
+
+.lancer-measure-line {
+  stroke: #ffd166;
+  stroke-width: 4;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.lancer-token {
+  cursor: grab;
+}
+
+.lancer-token.dragging {
+  cursor: grabbing;
+}
+
+.lancer-token image {
+  clip-path: circle(50%);
+}
+
+.lancer-token-ring {
+  fill: rgba(1, 9, 8, 0.55);
+  stroke: #f8f9fa;
+  stroke-width: 3;
+}
+
+.lancer-token:hover .lancer-token-ring,
+.lancer-token.active .lancer-token-ring {
+  stroke: #ffd166;
+  stroke-width: 5;
+}
+
+.lancer-token-label {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 3;
+  paint-order: stroke;
+  font-size: 18px;
+  font-weight: 900;
+  text-anchor: middle;
+  dominant-baseline: hanging;
+  pointer-events: none;
+}
+
+.lancer-map-info {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 4;
+  width: min(360px, 38vw);
+  max-height: calc(100% - 116px);
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid rgba(184, 255, 219, 0.32);
+  border-radius: 12px;
+  background: rgba(5, 17, 16, 0.86);
+  color: #eafff5;
+}
+
+.lancer-map-info h3 {
+  margin: 0 0 8px;
+}
+
+.lancer-character-tray {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 4;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 10px;
+  border: 1px solid rgba(184, 255, 219, 0.28);
+  border-radius: 14px;
+  background: rgba(5, 17, 16, 0.82);
+}
+
+.lancer-character-card {
+  flex: 0 0 88px;
+  border: 1px solid rgba(184, 255, 219, 0.28);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #eafff5;
+  cursor: pointer;
+  padding: 7px;
+  text-align: center;
+}
+
+.lancer-character-card.active {
+  border-color: #ffd166;
+  background: rgba(255, 209, 102, 0.14);
+}
+
+.lancer-character-card img {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+  margin: 0 auto 5px;
+}
+
+.lancer-character-card span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .lancer-map-info {
+    top: auto;
+    bottom: 94px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-height: 26%;
+  }
+
+  .lancer-map-toolbar {
+    right: 12px;
+    flex-wrap: wrap;
+  }
+}

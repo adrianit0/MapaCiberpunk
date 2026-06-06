@@ -1,0 +1,20 @@
+﻿<section id="lancerMapaPage" class="app-page lancer-map-page hidden" data-page="lancer-mapa">
+  <section class="lancer-map-stage">
+    <div class="lancer-map-toolbar">
+      <button id="lancerMapMeasureToggle" class="lancer-tool-button" type="button" aria-pressed="false">Regla</button>
+      <button id="lancerMapRefresh" class="lancer-tool-button" type="button">Actualizar</button>
+      <span id="lancerMapStatus" class="lancer-map-status" role="status"></span>
+    </div>
+
+    <div id="lancerMapViewport" class="lancer-map-viewport" role="application" aria-label="Mapa Lancer navegable">
+      <div id="lancerMapContent" class="lancer-map-content">
+        <img id="lancerMapImage" class="lancer-map-image" alt="Mapa Lancer" draggable="false" />
+        <svg id="lancerMapOverlay" class="lancer-map-overlay"></svg>
+      </div>
+    </div>
+
+    <aside id="lancerMapInfo" class="lancer-map-info" aria-live="polite">Click derecho sobre una pieza para ver su informacion.</aside>
+
+    <div id="lancerCharacterTray" class="lancer-character-tray" aria-label="Personajes disponibles"></div>
+  </section>
+</section>

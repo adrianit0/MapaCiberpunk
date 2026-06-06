@@ -131,6 +131,8 @@ const App = (() => {
     window.DadosPresenter?.clearData?.();
     window.GlosarioPresenter?.clearData?.();
     window.AdminPresenter?.clearData?.();
+    window.LancerMapaPresenter?.clearData?.();
+    window.AdminMapaLancerPresenter?.clearData?.();
     window.Locations?.clearData?.();
     window.MenuPresenter?.clear?.();
     window.AppSession = null;

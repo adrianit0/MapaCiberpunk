@@ -10,6 +10,8 @@ const MenuPresenter = (() => {
     dadosPage: "dadosPage",
     glosarioPage: "glosarioPage",
     adminPage: "adminPage",
+    lancerMapaPage: "lancerMapaPage",
+    adminMapaLancerPage: "adminMapaLancerPage",
   };
 
   const categories = ["Cyberpunk", "Lancer", "Admin"];
@@ -86,6 +88,41 @@ const MenuPresenter = (() => {
       },
     },
     {
+      id: "lancer-mapa",
+      pageId: selectors.lancerMapaPage,
+      tabLabel: "Mapa Lancer",
+      title: "Mapa Lancer",
+      description: "Mapa táctico Lancer con cuadrícula hexagonal y personajes",
+      icon: {
+        src: "Resources/MapIcon.png",
+        alt: "Icono de Mapa Lancer",
+      },
+      Categories: ["Lancer"],
+      open: openLancerMapa,
+      access: {
+        guest: false,
+        authenticated: true,
+      },
+    },
+    {
+      id: "admin-mapa-lancer",
+      pageId: selectors.adminMapaLancerPage,
+      tabLabel: "Admin Mapa Lancer",
+      title: "Admin Mapa Lancer",
+      description: "Configura mapas, rejillas hexagonales y personajes de Lancer",
+      icon: {
+        src: "Resources/AdminIcon.png",
+        alt: "Icono de Admin Mapa Lancer",
+      },
+      Categories: ["Admin", "Lancer"],
+      open: openAdminMapaLancer,
+      access: {
+        guest: false,
+        authenticated: true,
+        roles: ["admin", "master"],
+      },
+    },
+    {
       id: "mini-rol-cyberpunk",
       title: "MiniRol Cyberpunk",
       description: "Un minijuego de decisiones dentro del mundo de Cyberpunk RED",
@@ -130,6 +167,8 @@ const MenuPresenter = (() => {
   let dadosLoaded = false;
   let glosarioLoaded = false;
   let adminLoaded = false;
+  let lancerMapaLoaded = false;
+  let adminMapaLancerLoaded = false;
 
   function getElement(id) {
     return document.getElementById(id);
@@ -192,6 +231,8 @@ const MenuPresenter = (() => {
     if (application.pageId === selectors.dadosPage) dadosLoaded = false;
     if (application.pageId === selectors.glosarioPage) glosarioLoaded = false;
     if (application.pageId === selectors.adminPage) adminLoaded = false;
+    if (application.pageId === selectors.lancerMapaPage) lancerMapaLoaded = false;
+    if (application.pageId === selectors.adminMapaLancerPage) adminMapaLancerLoaded = false;
   }
 
   function applyApplicationAccess() {
@@ -558,6 +599,22 @@ const MenuPresenter = (() => {
     window.GlosarioPresenter?.init?.();
   }
 
+  async function openLancerMapa() {
+    const appContent = getElement(selectors.appContent);
+    if (!appContent) return;
+
+    loadStylesheet("LancerMapa/styles.css");
+
+    if (!lancerMapaLoaded || !getElement(selectors.lancerMapaPage)) {
+      appContent.insertAdjacentHTML("beforeend", await fetchHtml("LancerMapa/view.html"));
+      lancerMapaLoaded = true;
+    }
+
+    createTab(selectors.lancerMapaPage, "Mapa Lancer");
+    showPage(selectors.lancerMapaPage);
+    await window.LancerMapaPresenter?.init?.();
+  }
+
   function openMiniRolCyberpunk() {
     window.open("https://adrianit0.github.io/MiniRolCyberpunk/", "_blank", "noopener,noreferrer");
   }
@@ -578,6 +635,22 @@ const MenuPresenter = (() => {
     await window.AdminPresenter?.init?.();
   }
 
+  async function openAdminMapaLancer() {
+    const appContent = getElement(selectors.appContent);
+    if (!appContent) return;
+
+    loadStylesheet("AdminMapaLancer/styles.css");
+
+    if (!adminMapaLancerLoaded || !getElement(selectors.adminMapaLancerPage)) {
+      appContent.insertAdjacentHTML("beforeend", await fetchHtml("AdminMapaLancer/view.html"));
+      adminMapaLancerLoaded = true;
+    }
+
+    createTab(selectors.adminMapaLancerPage, "Admin Mapa Lancer");
+    showPage(selectors.adminMapaLancerPage);
+    await window.AdminMapaLancerPresenter?.init?.();
+  }
+
   async function init(options = {}) {
     const appContent = getElement(selectors.appContent);
     const appHeaderTabs = getElement(selectors.appHeaderTabs);
@@ -595,6 +668,8 @@ const MenuPresenter = (() => {
       dadosLoaded = false;
       glosarioLoaded = false;
       adminLoaded = false;
+      lancerMapaLoaded = false;
+      adminMapaLancerLoaded = false;
       createTab(selectors.menuPage, "Menu");
       bindMenuEvents();
     }
