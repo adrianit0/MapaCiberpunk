@@ -10,11 +10,12 @@
     });
   }
 
-  function upsertToken(token) {
+  function upsertToken(token, options = {}) {
     return ajaxRequest(LANCER_MAP_STATE_URL, {
       method: "POST",
       body: JSON.stringify(token),
       showLoading: false,
+      signal: options.signal,
     });
   }
 

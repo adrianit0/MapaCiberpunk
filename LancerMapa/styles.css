@@ -98,12 +98,29 @@
   pointer-events: none;
 }
 
+.lancer-measure-text {
+  fill: #ffd166;
+  stroke: #06110f;
+  stroke-width: 4;
+  paint-order: stroke;
+  font-size: 28px;
+  font-weight: 900;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
 .lancer-token {
   cursor: grab;
 }
 
 .lancer-token.dragging {
   cursor: grabbing;
+}
+
+.lancer-token-ghost {
+  opacity: 0.72;
+  pointer-events: none;
 }
 
 .lancer-token image {
@@ -168,6 +185,11 @@
   background: rgba(5, 17, 16, 0.82);
 }
 
+.lancer-character-tray.measure-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 .lancer-character-card {
   flex: 0 0 88px;
   border: 1px solid rgba(184, 255, 219, 0.28);
@@ -182,6 +204,12 @@
 .lancer-character-card.active {
   border-color: #ffd166;
   background: rgba(255, 209, 102, 0.14);
+}
+
+.lancer-character-card.dragging {
+  border-color: #20c997;
+  background: rgba(32, 201, 151, 0.18);
+  cursor: grabbing;
 }
 
 .lancer-character-card img {
