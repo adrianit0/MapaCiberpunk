@@ -30,7 +30,7 @@ const MenuPresenter = (() => {
         alt: "Icono de Mapa",
       },
       Categories: ["Cyberpunk"],
-      open: openMap,
+      open: openMap, 
       access: {
         guest: true,
         authenticated: true,
